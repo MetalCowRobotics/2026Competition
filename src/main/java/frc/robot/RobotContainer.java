@@ -30,7 +30,6 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Wrist;
-import frc.robot.subsystems.Climb;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -58,8 +57,7 @@ public class RobotContainer {
 
     private final Intake intake = new Intake();
     private final Wrist wrist = new Wrist();
-    private final Elevator elevator = new Elevator();
-    private final Climb climber = new Climb();
+    private final Elevator elevator = new Elevator(wrist);
 
     private final ArmCommands armCommands;
     private final SendableChooser<String> autoLocationChooser;
@@ -160,6 +158,8 @@ public class RobotContainer {
         operatorController.x().onTrue(armCommands.goToSource()); // Source position + intake on X
         joystick.leftBumper().onTrue(armCommands.goToRest());   // Rest position on driver left bumper
 
+        
+
         // Stop intake
         operatorController.leftBumper().onTrue(intake.reverseIntakeCommand());
         
@@ -167,17 +167,6 @@ public class RobotContainer {
         operatorController.rightBumper().onTrue(
                 intake.stopIntakeCommand().alongWith(armCommands.goToRest())
         );
-        joystick.y().onTrue(
-            climber.goToRise()
-         );
-        
-        joystick.a().onTrue(
-            climber.goToRest()
-        );
-        joystick.rightBumper().onTrue(
-            climber.manualClimb()
-        );
-
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
