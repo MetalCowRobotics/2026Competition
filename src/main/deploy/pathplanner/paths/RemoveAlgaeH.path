@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 5.730122950819672,
+        "y": 3.97
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.001738466702153,
+        "y": 3.939984378773848
+      },
+      "isLocked": false,
+      "linkedName": "AlageRemove"
+    },
+    {
+      "anchor": {
+        "x": 6.245594262295082,
+        "y": 4.025
+      },
+      "prevControl": {
+        "x": 5.995838872934667,
+        "y": 4.036056468035822
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 0.2,
+    "maxAcceleration": 0.1,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 146.68936917543914
+  },
+  "reversed": false,
+  "folder": "Right",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": false
+}
