@@ -32,9 +32,6 @@ public final class AlignmentConstants {
         new Pose2d(12.237, 2.924, Rotation2d.fromDegrees(60)),//RI
         new Pose2d(13.581, 2.753, Rotation2d.fromDegrees(120)),//RK
         new Pose2d(14.426, 3.868, Rotation2d.fromDegrees(180)),//RA
-        // new Pose2d(1.166, 7.057, Rotation2d.fromDegrees(0)),
-        // new Pose2d(16.44, 7.009, Rotation2d.fromDegrees(0)),
-        // new Pose2d(16.44, 1.010, Rotation2d.fromDegrees(0))
     };
 
     // Right Side Positions
@@ -52,10 +49,6 @@ public final class AlignmentConstants {
         new Pose2d(12.502, 2.772, Rotation2d.fromDegrees(60)),//RJ
         new Pose2d(13.884, 2.897, Rotation2d.fromDegrees(120)),//Rl
         new Pose2d(14.431, 4.203, Rotation2d.fromDegrees(180)),//RB
-        // new Pose2d(13.809, 2.985, Rotation2d.fromDegrees(0)),
-        // new Pose2d(1.198, 7.013, Rotation2d.fromDegrees(135)),
-        // new Pose2d(16.382, 7.009, Rotation2d.fromDegrees(0)),
-        // new Pose2d(16.470, 1.096, Rotation2d.fromDegrees(0))
     };
 
     // Method to find closest target
