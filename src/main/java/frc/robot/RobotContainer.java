@@ -19,12 +19,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.AlignToTarget;
-import frc.robot.commands.LEDDefaultCommand;
-import frc.robot.constants.AlignmentConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.Vision;
 
 public class RobotContainer {
@@ -51,7 +47,6 @@ public class RobotContainer {
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
     private final SendableChooser<String> autoLocationChooser;
-    private final LEDSubsystem ledSubsystem = new LEDSubsystem(0);
 
     public RobotContainer() {
         // Create vision subsystem after drivetrain
@@ -65,14 +60,6 @@ public class RobotContainer {
         autoLocationChooser.addOption("Right", new String("Right"));
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
-
-        // Set default command for LEDs
-        ledSubsystem.setDefaultCommand(new LEDDefaultCommand(
-            ledSubsystem, 
-            drivetrain, 
-            joystick, 
-            operatorController
-        ));
 
         configureBindings();
     }
@@ -89,23 +76,7 @@ public class RobotContainer {
             )
         );
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-
-        // X button for left side targets with LED feedback
-        joystick.x().whileTrue(
-            new AlignToTarget(drivetrain, () -> {
-                var currentPose = drivetrain.getState().Pose;
-                return AlignmentConstants.findClosestLeftTarget(currentPose);
-            })
-        );
-
-        // B button for right side targets with LED feedback
-        joystick.b().whileTrue(
-            new AlignToTarget(drivetrain, () -> {
-                var currentPose = drivetrain.getState().Pose;
-                return AlignmentConstants.findClosestRightTarget(currentPose);
-            })
-        );
-
+        
         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(0.5).withVelocityY(0))
         );
@@ -114,6 +85,7 @@ public class RobotContainer {
         );
 
         // Combined elevator and wrist controls for all positions
+
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
