@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.78,
-        "y": 4.13
+        "x": 2.434602409638554,
+        "y": 5.652301204819277
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.097470632875189,
-        "y": 3.984296756850397
+        "x": 2.6740792980365224,
+        "y": 5.809916664683149
       },
       "isLocked": false,
-      "linkedName": "CoralH"
+      "linkedName": "Shoot-Climb"
     },
     {
       "anchor": {
-        "x": 6.28155737704918,
-        "y": 4.025
+        "x": 1.593168674698795,
+        "y": 3.6634578313253012
       },
       "prevControl": {
-        "x": 5.816784891305164,
-        "y": 4.207795207870129
+        "x": 1.7805093830696181,
+        "y": 3.828997732820736
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "HAlageReady"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -33,10 +33,10 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.7,
-    "maxAcceleration": 1.0,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxAngularAcceleration": 700.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
@@ -45,10 +45,10 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Right",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -35.0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }
