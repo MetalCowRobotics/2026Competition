@@ -16,6 +16,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
@@ -26,8 +27,6 @@ public class Intake extends SubsystemBase {
     private final TalonFX followMotor;
     private final MotionMagicVoltage motionMagicRequest;
     private double targetPosition = 0;
-    private static final double METERS_PER_ROTATION = 0.1595; // π * 0.0508m (circumference of 2-inch sprocket)
-
 
     public Intake() {
         intakeMotor = new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
@@ -48,19 +47,18 @@ public class Intake extends SubsystemBase {
         feedback.SensorToMechanismRatio = 5.0; // 5:1 gear reduction
 
         MotionMagicConfigs mm = config.MotionMagic;
-        mm.withMotionMagicCruiseVelocity(39.27)
-          .withMotionMagicAcceleration(59.54)
-          .withMotionMagicJerk(100.08);
+        mm.withMotionMagicCruiseVelocity(IntakeConstants.CRUISE_VELOCITY)
+          .withMotionMagicAcceleration(IntakeConstants.MOTION_MAGIC_ACCELERATION)
+          .withMotionMagicJerk(IntakeConstants.MOTION_MAGIC_JERK);
 
-       
         // Configure PID values
         Slot0Configs slot0 = config.Slot0;
-        slot0.kS = 0.25;
-        slot0.kV = 0.02;
-        slot0.kA = 0.01;
-        slot0.kP = 10;
-        slot0.kI = 0;
-        slot0.kD = 1.0;
+        slot0.kS = IntakeConstants.KS;
+        slot0.kV = IntakeConstants.KV;
+        slot0.kA = IntakeConstants.KA;
+        slot0.kP = IntakeConstants.KP;
+        slot0.kI = IntakeConstants.KI;
+        slot0.kD = IntakeConstants.KD;
 
         // Set to brake mode
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -92,10 +90,9 @@ public class Intake extends SubsystemBase {
     }
 
     public void setTargetPosition(double positionMeters) {
-        targetPosition = positionMeters;
-        leadMotor.setControl(motionMagicRequest.withPosition(positionMeters / METERS_PER_ROTATION).withSlot(0));
+        this.targetPosition = positionMeters;
+        leadMotor.setControl(motionMagicRequest.withPosition(positionMeters / IntakeConstants.METERS_PER_ROTATION).withSlot(0));
     }
-
 
     public Command intakeOut() {
         return this.runOnce(() -> setTargetPosition(IntakeConstants.INTAKE_OUT));
@@ -103,6 +100,14 @@ public class Intake extends SubsystemBase {
 
     public Command intakeIn() {
         return this.runOnce(() -> setTargetPosition(IntakeConstants.INTAKE_IN));
+    }
+
+    public Command AgitateIntake() {
+        return Commands.repeatingSequence(
+            intakeIn(),
+            Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION),
+            intakeOut(),
+            Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION));
     }
 
     public Command startIntakeCommand() {
@@ -120,6 +125,8 @@ public class Intake extends SubsystemBase {
             () -> intakeMotor.set(0)
         );
     }
+
+
 
     @Override
     public void periodic() {
