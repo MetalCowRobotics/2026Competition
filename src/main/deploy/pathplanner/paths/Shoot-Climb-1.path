@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.28155737704918,
-        "y": 4.025
+        "x": 3.9644819277108434,
+        "y": 7.214963855421687
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.042937382540423,
-        "y": 3.950431251716013
+        "x": 2.7756067219711387,
+        "y": 5.931652719759377
       },
       "isLocked": false,
-      "linkedName": "HAlageReady"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.730122950819672,
-        "y": 3.97
+        "x": 2.434602409638554,
+        "y": 5.652301204819277
       },
       "prevControl": {
-        "x": 6.070321154826206,
-        "y": 3.97
+        "x": 2.643921822361702,
+        "y": 5.8863183344796575
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "AlageRemove"
+      "linkedName": "Shoot-Climb"
     }
   ],
   "rotationTargets": [],
@@ -33,22 +33,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.7,
-    "maxAcceleration": 1.0,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxAngularAcceleration": 700.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -35.0
   },
   "reversed": false,
-  "folder": "Right",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }
