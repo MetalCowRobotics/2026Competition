@@ -15,12 +15,8 @@ interface ShooterInterface {
 
    // public Shooter getInstance();
     public void periodic();
-    public boolean getShooterSpunUp();
-    public void setShootingSpeed();
-    public void setAmpSpeed();
     public void toggleShooter();
-    public void stopShooter();
-    public void startShooter();
-
+    public Command startIntakeCommand();
+    public Command stopIntakeCommand();
 
 }

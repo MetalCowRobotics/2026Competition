@@ -1,58 +1,99 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase implements ShooterInterface {
-
+    private final SparkMax shooterMotor;
     private final TalonFX shooterMotor1;
     private final TalonFX shooterMotor2;
-
-    public static final int SHOOTER_LEFT_ID = 10;
-    public static final int SHOOTER_RIGHT_ID = 11;
-
-    private double speed = 0.0;
+    private double targetPosition;
     private boolean shooterEnabled = false;
+    private final MotionMagicVoltage motionMagicRequest;
 
     public Shooter() {
-        shooterMotor1 = new TalonFX(SHOOTER_LEFT_ID); 
-        shooterMotor2 = new TalonFX(SHOOTER_RIGHT_ID);
+        shooterMotor = new SparkMax(ShooterConstants.SHOOTER_MOTOR_ID, MotorType.kBrushless);
+        shooterMotor1 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ONE_ID);
+        shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
+        motionMagicRequest = new MotionMagicVoltage(0);
+
+        // Configure the motor
+        SparkMaxConfig config = new SparkMaxConfig();
+        configureMotors();
+    }
+
+    private void configureMotors() {
+        TalonFXConfiguration config = new TalonFXConfiguration();
+
+        // Configure gear ratio and mechanical conversion
+        FeedbackConfigs feedback = config.Feedback;
+        feedback.SensorToMechanismRatio = 5.0; // 5:1 gear reduction
+
+        MotionMagicConfigs mm = config.MotionMagic;
+        mm.withMotionMagicCruiseVelocity(39.27)
+          .withMotionMagicAcceleration(59.54)
+          .withMotionMagicJerk(100.08);
+
+       
+        // Configure PID values
+        Slot0Configs slot0 = config.Slot0;
+        slot0.kS = 0.25;
+        slot0.kV = 0.02;
+        slot0.kA = 0.01;
+        slot0.kP = 10;
+        slot0.kI = 0;
+        slot0.kD = 1.0;
+
+        // Set to brake mode
+        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+        // Configure shooter motor one
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        StatusCode status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; ++i) {
+            status = shooterMotor1.getConfigurator().apply(config);
+            if (status.isOK()) break;
+        }
+        if (!status.isOK()) {
+            System.out.println("Could not configure leader motor. Error: " + status.toString());
+        }
+
+        // Configure shooter motor two
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; ++i) {
+            status = shooterMotor2.getConfigurator().apply(config);
+            if (status.isOK()) break;
+        }
+        if (!status.isOK()) {
+            System.out.println("Could not configure follower motor. Error: " + status.toString());
+        }
+    }
+
+    public void setTargetPosition(double positionMeters) {
+        targetPosition = positionMeters;
+        shooterMotor1.setControl(motionMagicRequest.withPosition(positionMeters / ShooterConstants.METERS_PER_ROTATION).withSlot(0));
     }
 
     @Override
     public void periodic() {
-        if (shooterEnabled) {
-            shooterMotor1.set(speed);
-            shooterMotor2.set(speed);
-        } else {
-            shooterMotor1.set(0.0);
-            shooterMotor2.set(0.0);
-        }
-        SmartDashboard.putNumber("Shooter Velocity (m/s)", getShooter1Velocity());
-    }
+         // This method will be called once per scheduler run
 
-    private double getShooter1Velocity() {
-        return shooterMotor1.getVelocity().getValueAsDouble();
-    }
-
-    private double getShooter2Velocity() {
-        return shooterMotor2.getVelocity().getValueAsDouble();
-    }
-
-    @Override
-    public boolean getShooterSpunUp() {
-        return shooterEnabled && speed == 1.0 && getShooter1Velocity() > 70.0 && getShooter2Velocity() > 70.0;
-    }
-
-    @Override
-    public void setShootingSpeed() {
-        speed = 1.0;
-    }
-
-    @Override
-    public void setAmpSpeed() {
-        speed = 0.40;
     }
 
     @Override
@@ -60,13 +101,20 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         shooterEnabled = !shooterEnabled;
     }
 
-    @Override
-    public void stopShooter() {
-        shooterEnabled = false;
+    public Command stopIntakeCommand() {
+        return this.runOnce( () -> shooterMotor.set(0));
     }
 
-    @Override
-    public void startShooter() {
-        shooterEnabled = true;
+    public Command startIntakeCommand() {
+        return this.startEnd(
+            // When the command starts, run the intake
+            () -> shooterMotor.set(ShooterConstants.SHOOTER_SPEED),
+            // When the command ends, stop the intake
+            () -> shooterMotor.set(0)
+        );
+    }
+
+    public void stop() {
+        shooterMotor.set(0);
     }
 }
