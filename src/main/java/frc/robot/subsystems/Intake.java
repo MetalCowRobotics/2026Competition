@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
 
-public class Intake extends SubsystemBase {
+public class Intake extends SubsystemBase implements IntakeInterface {
     private final SparkMax intakeMotor;
     private final TalonFX leadMotor;
     private final TalonFX followMotor;
@@ -39,7 +39,7 @@ public class Intake extends SubsystemBase {
         configureMotors();
     }
 
-    private void configureMotors() {
+    public void configureMotors() {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         // Configure gear ratio and mechanical conversion
@@ -102,7 +102,7 @@ public class Intake extends SubsystemBase {
         return this.runOnce(() -> setTargetPosition(IntakeConstants.INTAKE_IN));
     }
 
-    public Command AgitateIntake() {
+    public Command agitateIntake() {
         return Commands.repeatingSequence(
             intakeIn(),
             Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION),
