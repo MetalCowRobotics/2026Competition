@@ -63,7 +63,7 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         // Configure shooter motor one
-        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
             status = shooterMotor1.getConfigurator().apply(config);
@@ -74,6 +74,7 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         }
 
         // Configure shooter motor two
+        // config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
@@ -83,6 +84,8 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         if (!status.isOK()) {
             System.out.println("Could not configure follower motor. Error: " + status.toString());
         }
+
+        shooterMotor2.setControl(new StrictFollower(14));
     }
 
     public void setTargetPosition(double positionMeters) {
@@ -102,19 +105,19 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
     }
 
     public Command stopIntakeCommand() {
-        return this.runOnce( () -> shooterMotor.set(0));
+        return this.runOnce( () -> shooterMotor1.set(0));
     }
 
-    public Command startIntakeCommand() {
+    public Command startIntakeCommand(double speed) {
         return this.startEnd(
             // When the command starts, run the intake
-            () -> shooterMotor.set(ShooterConstants.SHOOTER_SPEED),
+            () -> shooterMotor1.set(speed),
             // When the command ends, stop the intake
-            () -> shooterMotor.set(0)
+            () -> shooterMotor1.set(0)
         );
     }
 
     public void stop() {
-        shooterMotor.set(0);
+        shooterMotor1.set(0);
     }
 }

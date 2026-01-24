@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -43,6 +44,7 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Vision vision;
+    private final Shooter shooter;
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -51,6 +53,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
+        shooter = new Shooter();
         
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -67,26 +70,38 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
-        );
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        // drivetrain.setDefaultCommand(
+        //     // Drivetrain will execute this command periodically
+        //     drivetrain.applyRequest(() ->
+        //         drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+        //             .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+        //             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+        //     )
+        // );
+        // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         
-        joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(0.5).withVelocityY(0))
-        );
-        joystick.pov(180).whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(-0.5).withVelocityY(0))
-        );
+        // joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
+        //     forwardStraight.withVelocityX(0.5).withVelocityY(0))
+        // );
+        // joystick.pov(180).whileTrue(drivetrain.applyRequest(() ->
+        //     forwardStraight.withVelocityX(-0.5).withVelocityY(0))
+        // );
 
         // Combined elevator and wrist controls for all positions
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+        //drivetrain.registerTelemetry(logger::telemeterize);
+
+        joystick.a().whileTrue(shooter.startIntakeCommand(0.15));
+        joystick.a().whileFalse(shooter.stopIntakeCommand());
+
+        joystick.b().whileTrue(shooter.startIntakeCommand(0.3));
+        joystick.b().whileFalse(shooter.stopIntakeCommand());
+
+        joystick.x().whileTrue(shooter.startIntakeCommand(0.5));
+        joystick.x().whileFalse(shooter.stopIntakeCommand());
+
+        joystick.y().whileTrue(shooter.startIntakeCommand(0.67));
+        joystick.y().whileFalse(shooter.stopIntakeCommand());
     }
 
     public Command getAutonomousCommand() {

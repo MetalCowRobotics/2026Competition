@@ -16,7 +16,7 @@ interface ShooterInterface {
    // public Shooter getInstance();
     public void periodic();
     public void toggleShooter();
-    public Command startIntakeCommand();
+    public Command startIntakeCommand(double speed);
     public Command stopIntakeCommand();
 
 }
