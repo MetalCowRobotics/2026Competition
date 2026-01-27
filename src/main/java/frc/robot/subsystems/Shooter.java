@@ -102,7 +102,7 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
     }
 
     public Command stopIntakeCommand() {
-        return this.runOnce( () -> shooterMotor.set(0));
+        return this.runOnce(() -> shooterMotor.set(0));
     }
 
     public Command startIntakeCommand() {
