@@ -2,15 +2,14 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.*;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,12 +20,13 @@ public class Pivot extends SubsystemBase implements PivotInterface {
     private final TalonFX pivotMotor;
 
     private double targetAngleDeg;
-    private final MotionMagicVoltage motionMagicRequest;
+    private final PIDController pidController;
 
     public Pivot() {
 
         pivotMotor = new TalonFX(16);
-        motionMagicRequest = new MotionMagicVoltage(0);
+        pidController = new PIDController(0.05, 0, 0);
+        pidController.setTolerance(0.5);
 
         configureMotors();
 
@@ -39,20 +39,7 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         FeedbackConfigs feedback = config.Feedback;
-        feedback.SensorToMechanismRatio = 66.6667; // 66.6667:1 reduction
-
-        MotionMagicConfigs mm = config.MotionMagic;
-        mm.withMotionMagicCruiseVelocity(39.27)
-          .withMotionMagicAcceleration(59.54)
-          .withMotionMagicJerk(100.08);
-
-        Slot0Configs slot0 = config.Slot0;
-        slot0.kS = 0.25;
-        slot0.kV = 0.02;
-        slot0.kA = 0.01;
-        slot0.kP = 1.0;
-        slot0.kI = 0.0;
-        slot0.kD = 0.0;
+        feedback.SensorToMechanismRatio = 66.6667; // 66.6667:1 reduction 
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -83,30 +70,30 @@ public class Pivot extends SubsystemBase implements PivotInterface {
      * Sets pivot target angle in DEGREES
      * Automatically clamped between 0° and 30°
      */
+
+    public double getCurrentAngleDeg() {
+        return pivotMotor.getPosition().getValueAsDouble() * 360.0;
+    }
+
+    public boolean atTarget() {
+        return pidController.atSetpoint();
+    }
+ 
+
     public void setTargetPosition(double angleDeg) {
 
-        double clampedDeg = Math.max(
+        targetAngleDeg = Math.max(
             ShooterConstants.PIVOT_MIN_DEG,
             Math.min(angleDeg, ShooterConstants.PIVOT_MAX_DEG)
         );
 
-        targetAngleDeg = clampedDeg;
-
-        double targetRotations = clampedDeg / 360.0;
-
-        pivotMotor.setControl(
-            motionMagicRequest
-                .withPosition(targetRotations)
-                .withSlot(0)
-        );
+        pidController.setSetpoint(targetAngleDeg);
     }
 
     public Command goToAngle(int angle) {
-        return this.startEnd(
+        return this.runOnce(
             // When the command starts, run the intake
-            () -> setTargetPosition(angle),
-            // When the command ends, stop the intake
-            () -> pivotMotor.set(0)
+            () -> setTargetPosition(angle)
         );
     }
 
@@ -121,8 +108,20 @@ public class Pivot extends SubsystemBase implements PivotInterface {
 
     @Override
     public void periodic() {
-        // Optional: logging
-        SmartDashboard.putNumber("Pivot Angle (deg)", 
-        pivotMotor.getPosition().getValueAsDouble() * 360.0);
+
+        double currentAngle = getCurrentAngleDeg();
+
+        double output = pidController.calculate(currentAngle);
+
+        // Clamp PID output to motor-safe range
+        output = MathUtil.clamp(output, -0.6, 0.6);
+
+        pivotMotor.set(output);
+
+        /* ===== Dashboard ===== */
+        SmartDashboard.putNumber("Pivot Angle (deg)", currentAngle);
+        SmartDashboard.putNumber("Pivot Target (deg)", targetAngleDeg);
+        SmartDashboard.putNumber("Pivot PID Output", output);
+        SmartDashboard.putBoolean("Pivot At Target", atTarget());
     }
 }

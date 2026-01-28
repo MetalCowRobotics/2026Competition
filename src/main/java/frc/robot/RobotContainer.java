@@ -91,14 +91,14 @@ public class RobotContainer {
 
         // drivetrain.registerTelemetry(logger::telemeterize);
 
-        joystick.a().onTrue(pivot.goToAngle(20));
-        joystick.a().onFalse(pivot.stopCommand());
+        joystick.a().whileTrue(pivot.goToAngle(20));
+        // joystick.a().whileFalse(pivot.stopCommand());
 
-        joystick.b().onTrue(pivot.goToAngle(0));
-        joystick.b().onFalse(pivot.stopCommand());
+        joystick.b().whileTrue(pivot.goToAngle(0));
+        // joystick.b().whileFalse(pivot.stopCommand());
 
-        joystick.x().onTrue(pivot.goToAngle(40));
-        joystick.x().onFalse(pivot.stopCommand());
+        joystick.x().whileTrue(pivot.goToAngle(40));
+        // joystick.x().whileFalse(pivot.stopCommand());
     }
 
     public Command getAutonomousCommand() {
