@@ -51,9 +51,6 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-
-        
-        
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
         autoLocationChooser = new SendableChooser<>();
