@@ -10,7 +10,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.*;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
@@ -66,10 +67,6 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         }
     }
 
-    /**
-     * Sets pivot target angle in DEGREES
-     * Automatically clamped between 0° and 30°
-     */
 
     public double getCurrentAngleDeg() {
         return pivotMotor.getPosition().getValueAsDouble() * 360.0;
@@ -95,6 +92,21 @@ public class Pivot extends SubsystemBase implements PivotInterface {
             // When the command starts, run the intake
             () -> setTargetPosition(angle)
         );
+    }
+
+    public Command goToAngle() {
+        return this.runOnce(
+            // When the command starts, run the intake
+            () -> setTargetPosition(getPitchAngle(null, 'R'))
+        );
+    }
+
+    public double getPitchAngle(Pose2d pose, char Alliance)
+    {
+        ShootingParams params;
+        params = calculateTrajectory(pose, Alliance);
+        double angle = Math.toDegrees(params.pitchAngle);
+        return angle;
     }
 
     public double getTargetAngleDeg() {
@@ -123,5 +135,74 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         SmartDashboard.putNumber("Pivot Target (deg)", targetAngleDeg);
         SmartDashboard.putNumber("Pivot PID Output", output);
         SmartDashboard.putBoolean("Pivot At Target", atTarget());
+    }
+
+    public static class ShootingParams {
+        public double yawAngle;    // radians
+        public double pitchAngle;  // radians
+    }
+
+    public ShootingParams calculateTrajectory(Pose2d robotPose, char alliance) {
+
+        /* ================= Constants ================= */
+
+        double gravity = 10.0;          // m/s^2 (close enough to 9.8)
+        double apexFraction = 0.7;      // fraction of distance where apex occurs
+        double apexHeight = 2.25;       // meters
+
+        /* ================= Hub Poses ================= */
+
+        // Blue Alliance Hub: (4.625, 4.035)
+        Pose2d blueHub = new Pose2d(
+                4.625,
+                4.035,
+                new Rotation2d()
+        );
+
+        // Red Alliance Hub: (11.92, 4.035)
+        Pose2d redHub = new Pose2d(
+                11.92,
+                4.035,
+                new Rotation2d()
+        );
+
+        Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+
+        ShootingParams params = new ShootingParams();
+
+        /* ================= Distance to Target ================= */
+
+        double dx = hub.getX() - robotPose.getX();
+        double dy = hub.getY() - robotPose.getY();
+
+        double trajectoryDistance = Math.sqrt(dx * dx + dy * dy);
+
+        /* ================= Yaw ================= */
+
+        params.yawAngle = Math.atan2(dy, dx);
+
+        /* ================= Projectile Math ================= */
+
+        // t = sqrt(2h / g)
+        double timeUntilApex = Math.sqrt((2.0 * apexHeight) / gravity);
+
+        double distanceUntilApex = trajectoryDistance * apexFraction;
+
+        double horizontalVelocity = distanceUntilApex / timeUntilApex;
+        double verticalVelocity = gravity * timeUntilApex;
+
+        /* ================= Pitch ================= */
+
+        params.pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
+
+        /* ================= Telemetry ================= */
+
+        // Replace with SmartDashboard / AdvantageKit / custom logger
+        // tkit.RecordOutput("Yaw Angle", params.yawAngle);
+        // tkit.RecordOutput("Pitch Angle", params.pitchAngle);
+        // tkit.RecordOutput("Apex Fraction", apexFraction);
+        // tkit.RecordOutput("Apex Height", apexHeight);
+
+        return params;
     }
 }
