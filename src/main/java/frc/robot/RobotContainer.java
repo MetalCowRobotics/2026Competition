@@ -36,7 +36,7 @@ public class RobotContainer {
     private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    public final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0); // Driver controller
     private final CommandXboxController operatorController = new CommandXboxController(1); // Operator controller
@@ -51,6 +51,8 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
+
+        
         
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -100,5 +102,6 @@ public class RobotContainer {
                 DriverStation.reportError("PathPlanner ERROR: " + e.getMessage(), e.getStackTrace());
                 return null;
         }
+
     }
 }
