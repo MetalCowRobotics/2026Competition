@@ -14,15 +14,14 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Vision;
-import frc.robot.subsystems.Pivot;
+import frc.robot.subsystems.*;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -45,6 +44,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Vision vision;
     private final Pivot pivot;
+    private final Turret turret;
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -54,6 +54,7 @@ public class RobotContainer {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
         pivot = new Pivot();
+        turret = new Turret();
         
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -99,6 +100,8 @@ public class RobotContainer {
 
         joystick.x().whileTrue(pivot.goToAngle(40));
         // joystick.x().whileFalse(pivot.stopCommand());
+
+        joystick.y().onTrue(pivot.goToAngle(null, 'R').alongWith(turret.goToAngle(null, 'R')));
     }
 
     public Command getAutonomousCommand() {

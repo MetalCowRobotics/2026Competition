@@ -16,23 +16,23 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
 
-public class Pivot extends SubsystemBase implements PivotInterface {
+public class Turret extends SubsystemBase {
 
-    private final TalonFX pivotMotor;
+    private final TalonFX turretMotor;
 
     private double targetAngleDeg;
     private final PIDController pidController;
 
-    public Pivot() {
+    public Turret() {
 
-        pivotMotor = new TalonFX(16);
+        turretMotor = new TalonFX(19);
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
 
         configureMotors();
 
-        // Assume pivot is physically at 0° on boot
-        pivotMotor.setPosition(0.0);
+        // Assume turret is physically at 0° on boot
+        turretMotor.setPosition(0.0);
     }
 
     private void configureMotors() {
@@ -45,31 +45,22 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
-                ShooterConstants.PIVOT_MAX_ROT;
-
-        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
-                ShooterConstants.PIVOT_MIN_ROT;
-
-
-        StatusCode status = StatusCode.StatusCodeNotInitialized;
+         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; i++) {
-            status = pivotMotor.getConfigurator().apply(config);
+            status = turretMotor.getConfigurator().apply(config);
             if (status.isOK()) break;
         }
 
         if (!status.isOK()) {
             System.out.println(
-                "Pivot motor config failed: " + status.toString()
+                "Turret motor config failed: " + status.toString()
             );
         }
     }
 
 
     public double getCurrentAngleDeg() {
-        return pivotMotor.getPosition().getValueAsDouble() * 360.0;
+        return turretMotor.getPosition().getValueAsDouble() * 360.0;
     }
 
     public boolean atTarget() {
@@ -79,12 +70,7 @@ public class Pivot extends SubsystemBase implements PivotInterface {
 
     public void setTargetPosition(double angleDeg) {
 
-        targetAngleDeg = Math.max(
-            ShooterConstants.PIVOT_MIN_DEG,
-            Math.min(angleDeg, ShooterConstants.PIVOT_MAX_DEG)
-        );
-
-        pidController.setSetpoint(targetAngleDeg);
+        pidController.setSetpoint(angleDeg);
     }
 
     public Command goToAngle(int angle) {
@@ -94,18 +80,17 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         );
     }
 
-    public Command goToAngle(Pose2d pose, char cha) {
+    public Command goToAngle(Pose2d pose, char cha ) {
         return this.runOnce(
             // When the command starts, run the intake
-            () -> setTargetPosition(getPitchAngle(pose, cha))
+            () -> setTargetPosition(getYawAngle(pose, cha))
         );
     }
 
-    public double getPitchAngle(Pose2d pose, char Alliance)
+    public double getYawAngle(Pose2d pose, char Alliance)
     {
         double angle = calculateTrajectory(pose, Alliance);
         angle = Math.toDegrees(angle);
-        targetAngleDeg = angle;
         return angle;
     }
 
@@ -115,7 +100,7 @@ public class Pivot extends SubsystemBase implements PivotInterface {
 
     public Command stopCommand()
     {
-       return this.runOnce( () -> pivotMotor.set(0));
+       return this.runOnce( () -> turretMotor.set(0));
     }
 
     @Override
@@ -128,23 +113,17 @@ public class Pivot extends SubsystemBase implements PivotInterface {
         // Clamp PID output to motor-safe range
         output = MathUtil.clamp(output, -0.6, 0.6);
 
-        pivotMotor.set(output);
+        turretMotor.set(output);
 
         /* ===== Dashboard ===== */
-        SmartDashboard.putNumber("Pivot Angle (deg)", currentAngle);
-        SmartDashboard.putNumber("Pivot Target (deg)", targetAngleDeg);
-        SmartDashboard.putNumber("Pivot PID Output", output);
-        SmartDashboard.putBoolean("Pivot At Target", atTarget());
+        SmartDashboard.putNumber("Turret Angle (deg)", currentAngle);
+        SmartDashboard.putNumber("Turret Target (deg)", targetAngleDeg);
+        SmartDashboard.putNumber("Turret PID Output", output);
+        SmartDashboard.putBoolean("Turret At Target", atTarget());
     }
 
 
     public double calculateTrajectory(Pose2d robotPose, char alliance) {
-
-        /* ================= Constants ================= */
-
-        double gravity = 10.0;          // m/s^2 (close enough to 9.8)
-        double apexFraction = 0.7;      // fraction of distance where apex occurs
-        double apexHeight = 2.25;       // meters
 
         /* ================= Hub Poses ================= */
 
@@ -164,35 +143,17 @@ public class Pivot extends SubsystemBase implements PivotInterface {
 
         Pose2d hub = (alliance == 'R') ? redHub : blueHub;
 
-                /* ================= Distance to Target ================= */
+        /* ================= Distance to Target ================= */
 
         double dx = hub.getX() - robotPose.getX();
         double dy = hub.getY() - robotPose.getY();
 
-        double trajectoryDistance = Math.sqrt(dx * dx + dy * dy);
+        /* ================= Yaw ================= */
+
+        double angle = Math.atan2(dy, dx);
 
         /* ================= Projectile Math ================= */
 
-        // t = sqrt(2h / g)
-        double timeUntilApex = Math.sqrt((2.0 * apexHeight) / gravity);
-
-        double distanceUntilApex = trajectoryDistance * apexFraction;
-
-        double horizontalVelocity = distanceUntilApex / timeUntilApex;
-        double verticalVelocity = gravity * timeUntilApex;
-
-        /* ================= Pitch ================= */
-
-        double pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
-
-        /* ================= Telemetry ================= */
-
-        // Replace with SmartDashboard / AdvantageKit / custom logger
-        // tkit.RecordOutput("Yaw Angle", params.yawAngle);
-        // tkit.RecordOutput("Pitch Angle", params.pitchAngle);
-        // tkit.RecordOutput("Apex Fraction", apexFraction);
-        // tkit.RecordOutput("Apex Height", apexHeight);
-
-        return pitchAngle;
+        return angle;
     }
 }
