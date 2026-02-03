@@ -28,6 +28,7 @@ public class Turret extends SubsystemBase {
         turretMotor = new TalonFX(19);
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
+        pidController.enableContinuousInput(-180.0, 180.0);
 
         configureMotors();
 
@@ -58,6 +59,11 @@ public class Turret extends SubsystemBase {
         }
     }
 
+    private double normalizeAngleDeg(double angle)
+    {
+        return MathUtil.inputModulus(angle, -180.0, 180.0);
+    }
+
 
     public double getCurrentAngleDeg() {
         return turretMotor.getPosition().getValueAsDouble() * 360.0;
@@ -68,10 +74,12 @@ public class Turret extends SubsystemBase {
     }
  
 
-    public void setTargetPosition(double angleDeg) {
+    public void setTargetPosition(double angleDeg)
+    {
+        targetAngleDeg = normalizeAngleDeg(angleDeg);
+        pidController.setSetpoint(targetAngleDeg);
+    }   
 
-        pidController.setSetpoint(angleDeg);
-    }
 
     public Command goToAngle(int angle) {
         return this.runOnce(
@@ -87,16 +95,19 @@ public class Turret extends SubsystemBase {
         );
     }
 
-    public double getYawAngle(Pose2d pose, char Alliance)
+    public double getYawAngle(Pose2d pose, char alliance)
     {
-        double angle = calculateTrajectory(pose, Alliance);
-        angle = Math.toDegrees(angle);
-        return angle;
+        double angleRad = calculateTrajectory(pose, alliance);
+        double angleDeg = Math.toDegrees(angleRad);
+        return normalizeAngleDeg(angleDeg);
     }
 
-    public double getTargetAngleDeg() {
-        return targetAngleDeg;
+    public double getTargetAngleDeg() 
+    {
+        double angle = turretMotor.getPosition().getValueAsDouble() * 360.0;
+        return normalizeAngleDeg(angle);
     }
+
 
     public Command stopCommand()
     {
