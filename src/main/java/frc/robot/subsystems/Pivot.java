@@ -78,7 +78,6 @@ public class Pivot extends SubsystemBase{
  
 
     public void setTargetPosition(double angleDeg) {
-
         targetAngleDeg = Math.max(
             ShooterConstants.PIVOT_MIN_DEG,
             Math.min(angleDeg, ShooterConstants.PIVOT_MAX_DEG)
@@ -94,16 +93,16 @@ public class Pivot extends SubsystemBase{
         );
     }
 
-    public Command goToAngle(Pose2d pose, char cha) {
+    public Command goToAngle(Pose2d pose, char alliance) {
         return this.runOnce(
             // When the command starts, run the intake
-            () -> setTargetPosition(getPitchAngle(pose, cha))
+            () -> setTargetPosition(getPitchAngle(pose, alliance))
         );
     }
 
-    public double getPitchAngle(Pose2d pose, char Alliance)
+    public double getPitchAngle(Pose2d pose, char alliance)
     {
-        double angle = calculateTrajectory(pose, Alliance);
+        double angle = calculateTrajectory(pose, alliance);
         angle = Math.toDegrees(angle);
         targetAngleDeg = angle;
         return angle;
@@ -128,7 +127,7 @@ public class Pivot extends SubsystemBase{
         // Clamp PID output to motor-safe range
         output = MathUtil.clamp(output, -0.6, 0.6);
 
-        //pivotMotor.set(output);
+        //pivotMotor.set(output); //TODO: Add this back when testing
 
         /* ===== Dashboard ===== */
         SmartDashboard.putNumber("Pivot Angle (deg)", currentAngle);
