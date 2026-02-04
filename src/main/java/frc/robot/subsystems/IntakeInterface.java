@@ -6,14 +6,12 @@ interface IntakeInterface {
 
     public void configureMotors();
 
-    public void setTargetPosition(double positionMeters);
-
+    public void setTargetAngleRadians(double radians);
     public Command intakeOut();
     public Command intakeIn();
     public Command agitateIntake();
-    public Command startIntakeCommand();
-    public Command stopIntakeCommand();
+    public Command startIntake();
+    public Command stopIntake();
 
     public void periodic();
-    public void stop();
 }

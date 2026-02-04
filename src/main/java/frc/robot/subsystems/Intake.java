@@ -6,13 +6,13 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,86 +20,88 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
-
 public class Intake extends SubsystemBase implements IntakeInterface {
+
     private final SparkMax intakeMotor;
-    private final TalonFX leadMotor;
-    private final TalonFX followMotor;
+    private final TalonFX pivotMotor;
     private final MotionMagicVoltage motionMagicRequest;
-    private double targetPosition = 0;
 
     public Intake() {
-        intakeMotor = new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
-        leadMotor = new TalonFX(IntakeConstants.LEAD_MOTOR_ID);
-        followMotor = new TalonFX(IntakeConstants.FOLLOW_MOTOR_ID);
+        intakeMotor = new SparkMax(
+            IntakeConstants.INTAKE_MOTOR_ID,
+            MotorType.kBrushless
+        );
+
+        pivotMotor = new TalonFX(IntakeConstants.PIVOT_MOTOR_ID);
         motionMagicRequest = new MotionMagicVoltage(0);
-        
-        // Configure the motor
-        SparkMaxConfig config = new SparkMaxConfig();
+
         configureMotors();
     }
 
     public void configureMotors() {
-        TalonFXConfiguration config = new TalonFXConfiguration();
+        TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
+        SparkMaxConfig intakeConfig = new SparkMaxConfig();
 
-        // Configure gear ratio and mechanical conversion
-        FeedbackConfigs feedback = config.Feedback;
-        feedback.SensorToMechanismRatio = 5.0; // 5:1 gear reduction
+        FeedbackConfigs feedback = pivotConfig.Feedback;
+        feedback.SensorToMechanismRatio = IntakeConstants.PIVOT_GEAR_RATIO;
 
-        MotionMagicConfigs mm = config.MotionMagic;
+        MotionMagicConfigs mm = pivotConfig.MotionMagic;
         mm.withMotionMagicCruiseVelocity(IntakeConstants.CRUISE_VELOCITY)
           .withMotionMagicAcceleration(IntakeConstants.MOTION_MAGIC_ACCELERATION)
           .withMotionMagicJerk(IntakeConstants.MOTION_MAGIC_JERK);
 
-        // Configure PID values
-        Slot0Configs slot0 = config.Slot0;
+        Slot0Configs slot0 = pivotConfig.Slot0;
         slot0.kS = IntakeConstants.KS;
         slot0.kV = IntakeConstants.KV;
         slot0.kA = IntakeConstants.KA;
         slot0.kP = IntakeConstants.KP;
         slot0.kI = IntakeConstants.KI;
         slot0.kD = IntakeConstants.KD;
+        slot0.kG = IntakeConstants.KG;
 
-        // Set to brake mode
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        // Configure leader motor
-        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         StatusCode status = StatusCode.StatusCodeNotInitialized;
-        for (int i = 0; i < 5; ++i) {
-            status = leadMotor.getConfigurator().apply(config);
+        for (int i = 0; i < 5; i++) {
+            status = pivotMotor.getConfigurator().apply(pivotConfig);
             if (status.isOK()) break;
         }
+
         if (!status.isOK()) {
-            System.out.println("Could not configure leader motor. Error: " + status.toString());
+            System.out.println(
+                "Could not configure pivot motor: " + status.toString()
+            );
         }
 
-        // Configure follower motor
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        status = StatusCode.StatusCodeNotInitialized;
-        for (int i = 0; i < 5; ++i) {
-            status = followMotor.getConfigurator().apply(config);
-            if (status.isOK()) break;
-        }
-        if (!status.isOK()) {
-            System.out.println("Could not configure follower motor. Error: " + status.toString());
-        }
-
-        // Set follower to follow leader
-        followMotor.setControl(new StrictFollower(IntakeConstants.LEAD_MOTOR_ID));
+        intakeMotor.configure(
+            intakeConfig,
+            ResetMode.kResetSafeParameters,
+            PersistMode.kPersistParameters
+        );
     }
 
-    public void setTargetPosition(double positionMeters) {
-        this.targetPosition = positionMeters;
-        leadMotor.setControl(motionMagicRequest.withPosition(positionMeters / IntakeConstants.METERS_PER_ROTATION).withSlot(0));
+    /* ---------------- Pivot Motor ---------------- */
+
+    public void setTargetAngleRadians(double radians) {
+        double mechanismRotations = radians / (2.0 * Math.PI);
+
+        pivotMotor.setControl(
+            motionMagicRequest
+                .withPosition(mechanismRotations)
+                .withSlot(0)
+        );
     }
 
     public Command intakeOut() {
-        return this.runOnce(() -> setTargetPosition(IntakeConstants.INTAKE_OUT));
+        return this.runOnce(() ->
+            setTargetAngleRadians(IntakeConstants.INTAKE_OUT_RAD)
+        );
     }
 
     public Command intakeIn() {
-        return this.runOnce(() -> setTargetPosition(IntakeConstants.INTAKE_IN));
+        return this.runOnce(() ->
+            setTargetAngleRadians(IntakeConstants.INTAKE_IN_RAD)
+        );
     }
 
     public Command agitateIntake() {
@@ -107,33 +109,26 @@ public class Intake extends SubsystemBase implements IntakeInterface {
             intakeIn(),
             Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION),
             intakeOut(),
-            Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION));
-    }
-
-    public Command startIntakeCommand() {
-        return this.startEnd(
-            // When the command starts, run the intake
-            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED),
-            // When the command ends, stop the intake
-            () -> intakeMotor.set(0)
+            Commands.waitSeconds(IntakeConstants.TIME_BETWEEN_AGITATION)
         );
     }
 
+    /* ---------------- Intake Motor ---------------- */
 
-    public Command stopIntakeCommand() {
-        return this.runOnce(
-            () -> intakeMotor.set(0)
+    public Command startIntake() {
+        return this.runOnce(() ->
+            intakeMotor.set(IntakeConstants.INTAKE_SPEED)
         );
     }
 
-
+    public Command stopIntake() {
+        return this.runOnce(() ->
+            intakeMotor.set(0)
+        );
+    }
 
     @Override
     public void periodic() {
-        // This method will be called once per scheduler run
+        // telemetry
     }
-
-    public void stop() {
-        intakeMotor.set(0);
-    }
-} 
+}
