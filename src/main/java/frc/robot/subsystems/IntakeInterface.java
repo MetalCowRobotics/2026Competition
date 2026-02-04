@@ -12,6 +12,7 @@ interface IntakeInterface {
     public Command agitateIntake();
     public Command startIntake();
     public Command stopIntake();
+    public double getPivotAngleRadians();
 
     public void periodic();
 }

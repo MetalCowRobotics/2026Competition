@@ -15,6 +15,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,6 +26,9 @@ public class Intake extends SubsystemBase implements IntakeInterface {
     private final SparkMax intakeMotor;
     private final TalonFX pivotMotor;
     private final MotionMagicVoltage motionMagicRequest;
+    double intakeSpeed = 0;
+    double pivotTargetAngle = 0;
+
 
     public Intake() {
         intakeMotor = new SparkMax(
@@ -93,12 +97,14 @@ public class Intake extends SubsystemBase implements IntakeInterface {
     }
 
     public Command intakeOut() {
+        this.pivotTargetAngle = IntakeConstants.INTAKE_OUT_RAD;
         return this.runOnce(() ->
             setTargetAngleRadians(IntakeConstants.INTAKE_OUT_RAD)
         );
     }
 
     public Command intakeIn() {
+        this.pivotTargetAngle = IntakeConstants.INTAKE_IN_RAD;
         return this.runOnce(() ->
             setTargetAngleRadians(IntakeConstants.INTAKE_IN_RAD)
         );
@@ -116,19 +122,29 @@ public class Intake extends SubsystemBase implements IntakeInterface {
     /* ---------------- Intake Motor ---------------- */
 
     public Command startIntake() {
+        this.intakeSpeed = IntakeConstants.INTAKE_SPEED;
         return this.runOnce(() ->
             intakeMotor.set(IntakeConstants.INTAKE_SPEED)
         );
     }
 
     public Command stopIntake() {
+        this.intakeSpeed = 0;
         return this.runOnce(() ->
             intakeMotor.set(0)
         );
     }
 
+    public double getPivotAngleRadians() {
+    pivotMotor.getPosition().refresh();
+    return pivotMotor.getPosition().getValueAsDouble() * 2.0 * Math.PI;
+    }
+
+
     @Override
     public void periodic() {
-        // telemetry
+        SmartDashboard.putNumber("Intake Speed", intakeSpeed);
+        SmartDashboard.putNumber("Target Intake Pivot Angle", pivotTargetAngle);
+        SmartDashboard.putNumber("Current Intake Pivot Angle", getPivotAngleRadians());
     }
 }

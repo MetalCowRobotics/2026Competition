@@ -10,6 +10,13 @@ public class IntakeConstants {
     public static final double INTAKE_IN = 0; // TODO: Adjust this position
     public static final double TIME_BETWEEN_AGITATION = 0.4;
 
+    public static final double PIVOT_GEAR_RATIO = 5.0;
+
+    public static final double INTAKE_IN_RAD  = Math.toRadians(0.0);
+    public static final double INTAKE_OUT_RAD = Math.toRadians(65.0);
+
+
+
     public static final double METERS_PER_ROTATION = 0.1595; // π * 0.0508m (circumference of 2-inch sprocket)
 
 
