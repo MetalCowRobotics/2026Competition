@@ -8,7 +8,4 @@ interface ShooterInterface {
     public Command stopShooter();
     public void periodic();
 
-
-    
-
 }
