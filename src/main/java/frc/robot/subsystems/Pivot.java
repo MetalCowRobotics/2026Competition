@@ -11,6 +11,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
@@ -18,15 +21,18 @@ import frc.robot.constants.ShooterConstants;
 public class Pivot extends SubsystemBase implements PivotInterface{
 
     private final TalonFX pivotMotor;
+    private final shooterLookup shooterLookup;
 
     private double targetAngleDeg;
     private final PIDController pidController;
+    private Transform2d robotRelativeTurretTransform;
 
     public Pivot() {
 
         pivotMotor = new TalonFX(16);
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
+        shooterLookup = new shooterLookup();
 
         configureMotors();
 
@@ -184,5 +190,85 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         double pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
 
         return pitchAngle;
+    }
+
+    public enum Hub 
+    {
+    BLUE,
+    RED
+    }
+
+    public static class ShootingParams
+    {
+    public double yawAngle;     // radians
+    public double pitchAngle;   // radians
+    public double flywheelRpm;  // RPM
+    }
+
+
+public ShootingParams calculateTrajectory(
+        Pose2d robotPose,
+        ChassisSpeeds robotVelocity,
+        Hub alliance
+) {
+
+    /* ================= Hub Poses ================= */
+
+    Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
+    Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
+
+    Pose2d hub = (alliance == Hub.BLUE) ? blueHub : redHub;
+
+    ShootingParams params = new ShootingParams();
+
+    /* ================= Turret Pose ================= */
+
+    Pose2d turretPose = robotPose.plus(robotRelativeTurretTransform);
+
+    /* ================= Distance to Hub ================= */
+
+    double dx = hub.getX() - turretPose.getX();
+    double dy = hub.getY() - turretPose.getY();
+    double totalDistance = Math.hypot(dx, dy);
+
+    /* ================= Robot Velocity ================= */
+
+    double robotSpeed = Math.hypot(robotVelocity.vxMetersPerSecond,
+                                   robotVelocity.vyMetersPerSecond);
+
+    double robotVelocityAngle =
+            Math.atan2(robotVelocity.vyMetersPerSecond,
+                       robotVelocity.vxMetersPerSecond);
+
+    double robotToTargetAngle = Math.atan2(dy, dx);
+
+    /* ================= Sideways Velocity ================= */
+
+    double vrs =
+            robotSpeed *
+            Math.sin(robotVelocityAngle - robotToTargetAngle);
+
+    /* ================= Yaw Compensation ================= */
+
+    double flightTime =
+            shooterLookup.calculateFlightTime(totalDistance);
+
+    params.yawAngle =
+            Math.atan2(vrs * flightTime, totalDistance);
+
+    /* ================= Pitch & RPM ================= */
+
+    params.pitchAngle =
+            shooterLookup.calculateHoodAngle(totalDistance);
+
+    params.flywheelRpm =
+            shooterLookup.calculateFlywheelVelocity(totalDistance);
+
+    /* ================= Telemetry ================= */
+
+    SmartDashboard.putNumber("Yaw Angle (rad)", params.yawAngle);
+    SmartDashboard.putNumber("Pitch Angle (rad)", params.pitchAngle);
+
+    return params;
     }
 }
