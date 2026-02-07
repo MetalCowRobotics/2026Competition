@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot-Climb-1"
+            "pathName": "Shoot-Begin"
           }
         },
         {
@@ -19,13 +19,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot-Climb-2"
+            "pathName": "Pick-Depot"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Climb"
+            "name": "Intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Depot-Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         }
       ]
