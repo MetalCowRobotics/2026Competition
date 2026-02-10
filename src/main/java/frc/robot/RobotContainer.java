@@ -15,6 +15,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -51,6 +52,7 @@ public class RobotContainer {
 
     private Pose2d pose;
     private char alliance;
+    private ChassisSpeeds cSpeeds;
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -63,6 +65,7 @@ public class RobotContainer {
         turret = new Turret();
         
         pose = drivetrain.getState().Pose;
+        cSpeeds = drivetrain.getState().Speeds;
         
         if(DriverStation.getAlliance().get() == Alliance.Red)
         {
