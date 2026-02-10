@@ -21,18 +21,21 @@ import frc.robot.constants.ShooterConstants;
 public class Pivot extends SubsystemBase implements PivotInterface{
 
     private final TalonFX pivotMotor;
-    private final shooterLookup shooterLookup;
+    private final ShooterLookup shooterLookup;
 
     private double targetAngleDeg;
     private final PIDController pidController;
     private Transform2d robotRelativeTurretTransform;
+    ShootingParams params;
 
     public Pivot() {
 
         pivotMotor = new TalonFX(16);
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
-        shooterLookup = new shooterLookup();
+        shooterLookup = new ShooterLookup();
+        params = new ShootingParams();
+        robotRelativeTurretTransform = new Transform2d(1, 1, new Rotation2d());
 
         configureMotors();
 
@@ -105,12 +108,30 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         );
     }
 
+        public Command goToAngle(Pose2d pose, ChassisSpeeds speeds, char alliance) {
+        return this.runOnce(
+            // When the command starts, run the intake
+            () -> setTargetPosition(getPitchAngle(pose, speeds, alliance)));
+    }
+
     public double getPitchAngle(Pose2d pose, char alliance)
     {
         double angle = calculateTrajectory(pose, alliance);
         angle = Math.toDegrees(angle);
         targetAngleDeg = angle;
         return angle;
+    }
+
+    public double getPitchAngle(Pose2d pose, ChassisSpeeds speeds, char alliance)
+    {
+        params = calculateTrajectory(pose, speeds, alliance);
+        return params.pitchAngle;
+    }
+
+    public double getShooterSpeed(Pose2d pose, ChassisSpeeds speeds, char alliance)
+    {
+        params = calculateTrajectory(pose, speeds, alliance);
+        return params.flywheelRpm;
     }
 
     public double getTargetAngleDeg() {
@@ -192,32 +213,15 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         return pitchAngle;
     }
 
-    public enum Hub 
-    {
-    BLUE,
-    RED
-    }
 
-    public static class ShootingParams
-    {
-    public double yawAngle;     // radians
-    public double pitchAngle;   // radians
-    public double flywheelRpm;  // RPM
-    }
-
-
-public ShootingParams calculateTrajectory(
-        Pose2d robotPose,
-        ChassisSpeeds robotVelocity,
-        Hub alliance
-) {
+public ShootingParams calculateTrajectory(Pose2d robotPose,ChassisSpeeds robotVelocity, char alliance) {
 
     /* ================= Hub Poses ================= */
 
     Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
     Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
 
-    Pose2d hub = (alliance == Hub.BLUE) ? blueHub : redHub;
+    Pose2d hub = (alliance == 'R') ? redHub : blueHub;
 
     ShootingParams params = new ShootingParams();
 

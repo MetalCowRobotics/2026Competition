@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 import java.util.HashMap;
 import java.util.Map;
 
-public class shooterLookup {
+public class ShooterLookup {
 
     // key: distance (feet)
     // value: angle (degrees)
@@ -17,7 +17,7 @@ public class shooterLookup {
     // value: time of flight (seconds)
     private final Map<Double, Double> timeMap = new HashMap<>();
 
-    public shooterLookup() {
+    public ShooterLookup() {
         // Example values — replace with real tuning data
         angleMap.put(0.0,1.0);
         angleMap.put(1.0,1.0);
