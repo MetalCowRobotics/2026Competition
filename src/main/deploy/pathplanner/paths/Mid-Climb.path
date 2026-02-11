@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.4181706963412877,
-        "y": 4.02807023904914
+        "x": 2.5612782617656777,
+        "y": 3.7580113489283433
       },
       "isLocked": false,
       "linkedName": "Mid-Shoot"
@@ -20,15 +20,20 @@
         "y": 3.78366265060241
       },
       "prevControl": {
-        "x": 1.3983587028354036,
-        "y": 3.8002588199310927
+        "x": 1.3987662926164883,
+        "y": 3.805539854428096
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.2381013569078947,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
