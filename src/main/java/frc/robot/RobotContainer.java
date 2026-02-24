@@ -96,6 +96,7 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
+        
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         
         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
@@ -110,6 +111,10 @@ public class RobotContainer {
         // Combined elevator and wrist controls for all positions
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
+       
+        operatorController.a().onTrue(pivot.goToAngle(0).alongWith(turret.goToAngle(0)));
     }
 
     public Command getAutonomousCommand() {
