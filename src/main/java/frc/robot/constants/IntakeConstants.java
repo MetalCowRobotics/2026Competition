@@ -1,8 +1,8 @@
 package frc.robot.constants;
 
 public class IntakeConstants {
-    public static final int INTAKE_MOTOR_ID = 17; // TODO: Adjust this ID
-    public static final int PIVOT_MOTOR_ID = 0; // TODO: Adjust this ID
+    public static final int INTAKE_MOTOR_ID = 16; // TODO: Adjust this ID
+    public static final int PIVOT_MOTOR_ID = 21; // TODO: Adjust this ID
     
     public static final double INTAKE_SPEED = 0.9; // TODO: Adjust this speed
     public static final double REVERSE_SPEED = -0.9; // TODO: Adjust this speed
