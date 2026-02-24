@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Spindexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Vision;
 
 public class RobotContainer {
@@ -42,6 +44,8 @@ public class RobotContainer {
     private final CommandXboxController operatorController = new CommandXboxController(1); // Operator controller
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    public final Spindexer spindexer = new Spindexer();
+    public final Intake intake = new Intake();
     private final Vision vision;
 
     /* Path follower */
@@ -83,6 +87,27 @@ public class RobotContainer {
         joystick.pov(180).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(-0.5).withVelocityY(0))
         );
+
+        if (operatorController.a().getAsBoolean()){
+            spindexer.runSpindexer();
+        }
+
+        if (operatorController.b().getAsBoolean()){
+            spindexer.stopSpindexer();
+        }
+
+        if (operatorController.y().getAsBoolean()){
+            intake.startIntake();
+        }
+
+        if (operatorController.x().getAsBoolean()){
+            intake.stopIntake();
+        }
+        
+
+
+
+
 
         // Combined elevator and wrist controls for all positions
 
