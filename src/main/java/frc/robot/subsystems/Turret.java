@@ -12,9 +12,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
+import frc.robot.subsystems.PivotInterface.ShootingParams;
 
 public class Turret extends SubsystemBase implements TurretInterface {
 
@@ -22,6 +25,8 @@ public class Turret extends SubsystemBase implements TurretInterface {
 
     private double targetAngleDeg;
     private final PIDController pidController;
+    private Transform2d robotRelativeTurretTransform;
+    private ShootingParams params;
 
     public Turret() {
 
@@ -29,6 +34,8 @@ public class Turret extends SubsystemBase implements TurretInterface {
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
         pidController.enableContinuousInput(-180.0, 180.0);
+        robotRelativeTurretTransform = new Transform2d(1, 1, new Rotation2d());
+        params = new ShootingParams();
 
         configureMotors();
 
@@ -95,12 +102,26 @@ public class Turret extends SubsystemBase implements TurretInterface {
         );
     }
 
+    public Command goToAngle(Pose2d pose, ChassisSpeeds csp, char cha ) {
+        return this.runOnce(
+            // When the command starts, run the intake
+            () -> setTargetPosition(getYawAngle(pose, cha, csp))
+        );
+    }
+
     public double getYawAngle(Pose2d pose, char alliance)
     {
         double angleRad = calculateTrajectory(pose, alliance);
         double angleDeg = Math.toDegrees(angleRad);
         return normalizeAngleDeg(angleDeg);
     }
+
+    public double getYawAngle(Pose2d pose, char all, ChassisSpeeds cSpeeds)
+    {
+        params = calculateTrajectory(pose, cSpeeds, all);
+        return Math.toDegrees(params.yawAngle);
+    }
+
 
     public double getTargetAngleDeg() 
     {
@@ -167,4 +188,207 @@ public class Turret extends SubsystemBase implements TurretInterface {
 
         return angle;
     }
+
+    public ShootingParams calculateTrajectory(
+        Pose2d robotPose,
+        ChassisSpeeds robotVelocity,
+        char alliance) {
+
+    ShootingParams tparams = new ShootingParams();
+
+    /* ================= Constants ================= */
+
+    final double g = 9.81;
+    final double shooterHeight = 0.9;   // meters
+    final double targetHeight = 2.64;   // meters
+    final double fixedVelocity = 18.0;  // m/s (example fixed shooter velocity)
+
+    /* ================= Hub Pose ================= */
+
+    Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
+    Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
+    Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+
+    /* ================= Distance ================= */
+
+    double dx = hub.getX() - robotPose.getX();
+    double dy = hub.getY() - robotPose.getY();
+    double distance = Math.hypot(dx, dy);
+
+    double heightDifference = targetHeight - shooterHeight;
+
+    /* ================= Solve For Hood Angle ================= */
+
+    double v2 = fixedVelocity * fixedVelocity;
+
+    double discriminant =
+            v2 * v2
+            - g * (g * distance * distance
+                   + 2 * heightDifference * v2);
+
+    if (discriminant < 0) {
+        // Shot not possible at this velocity
+        return tparams;
+    }
+
+    double sqrt = Math.sqrt(discriminant);
+
+    // High arc solution (use +)
+    double numerator = v2 + sqrt;
+    double denominator = g * distance;
+
+    double hoodAngle = Math.atan(numerator / denominator);
+
+    tparams.pitchAngle = hoodAngle;
+
+    /* ================= Flight Time ================= */
+
+    double flightTime =
+            distance / (fixedVelocity * Math.cos(hoodAngle));
+
+    /* ================= Robot Motion Compensation ================= */
+
+    double robotSpeed = Math.hypot(
+            robotVelocity.vxMetersPerSecond,
+            robotVelocity.vyMetersPerSecond);
+
+    double robotVelocityAngle = Math.atan2(
+            robotVelocity.vyMetersPerSecond,
+            robotVelocity.vxMetersPerSecond);
+
+    double robotToTargetAngle = Math.atan2(dy, dx);
+
+    double sidewaysVelocity =
+            robotSpeed *
+            Math.sin(robotVelocityAngle - robotToTargetAngle);
+
+    double yawAngle =
+            Math.atan2(sidewaysVelocity * flightTime, distance);
+
+    tparams.yawAngle = yawAngle;
+
+    return tparams;
 }
+}
+//     public double calculateFlightTime(
+//         double velocity,       // m/s
+//         double angleRadians,   // radians
+//         double shooterHeight,  // meters
+//         double targetHeight    // meters
+// ) {
+//     double g = 9.81;
+
+//     double verticalVelocity = velocity * Math.sin(angleRadians);
+//     double heightDifference = targetHeight - shooterHeight;
+
+//     double discriminant =
+//             verticalVelocity * verticalVelocity
+//             - 2 * g * heightDifference;
+
+//     if (discriminant < 0) {
+//         // Target unreachable
+//         return -1;
+//     }
+
+//     double sqrt = Math.sqrt(discriminant);
+
+//     // Use larger root
+//     double time =
+//             (verticalVelocity + sqrt) / g;
+
+//     return time;
+// }
+
+//     public ShootingParams calculateTrajectory(Pose2d robotPose,ChassisSpeeds robotVelocity, char alliance, double time) {
+
+    // double gravity = 10.0;          // m/s^2 (close enough to 9.8)
+    // double apexFraction = 0.7;      // fraction of distance where apex occurs
+    // double apexHeight = 2.25;       // meters
+    // double shooterHeight = 0;
+    // double targetHeight = 0;
+    // double shooterVelocity = 0;
+
+    // /* ================= Hub Poses ================= */
+
+    // // Blue Alliance Hub: (4.625, 4.035)
+    // Pose2d blueHub = new Pose2d(
+    //         4.625,
+    //         4.035,
+    //         new Rotation2d()
+    // );
+
+    // // Red Alliance Hub: (11.92, 4.035)
+    // Pose2d redHub = new Pose2d(
+    //         11.92,
+    //         4.035,
+    //         new Rotation2d()
+    // );
+
+    // Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+
+    // /* ================= Distance to Target ================= */
+
+    // double dx = hub.getX() - robotPose.getX();
+    // double dy = hub.getY() - robotPose.getY();
+
+    // double trajectoryDistance = Math.sqrt(dx * dx + dy * dy);
+    // double totalDistance = Math.hypot(dx, dy);
+
+    // /* ================= Projectile Math ================= */
+
+    // // t = sqrt(2h / g)
+    // double timeUntilApex = Math.sqrt((2.0 * apexHeight) / gravity);
+
+    // double distanceUntilApex = trajectoryDistance * apexFraction;
+
+    // double horizontalVelocity = distanceUntilApex / timeUntilApex;
+    // double verticalVelocity = gravity * timeUntilApex;
+
+    // /* ================= Pitch ================= */
+
+    // double pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
+
+    // /* ================= Robot Velocity ================= */
+
+    // double robotSpeed = Math.hypot(robotVelocity.vxMetersPerSecond,
+    //                                robotVelocity.vyMetersPerSecond);
+
+    // double robotVelocityAngle =
+    //         Math.atan2(robotVelocity.vyMetersPerSecond,
+    //                    robotVelocity.vxMetersPerSecond);
+
+    // double robotToTargetAngle = Math.atan2(dy, dx);
+
+    // /* ================= Sideways Velocity ================= */
+
+    // double vrs =
+    //         robotSpeed *
+    //         Math.sin(robotVelocityAngle - robotToTargetAngle);
+
+    // /* ================= Yaw Compensation ================= */
+
+    // double verticalV = shooterVelocity * Math.sin(Math.toRadians(pitchAngle));
+    // double heightDifference = targetHeight - shooterHeight;
+
+    // double discriminant =
+    //         verticalV * verticalV
+    //         - 2 * gravity * heightDifference;
+
+    
+    // double sqrt = Math.sqrt(discriminant);
+
+    // // Use larger root
+    // double flightTime =
+    //         (verticalV + sqrt) / gravity;
+
+    // params.yawAngle =
+    //         Math.atan2(vrs * flightTime, totalDistance);
+
+       
+    // /* ================= Telemetry ================= */
+
+    // SmartDashboard.putNumber("Yaw Angle (rad)", params.yawAngle);
+    // SmartDashboard.putNumber("Pitch Angle (rad)", params.pitchAngle);
+
+    // return params;
+    // }

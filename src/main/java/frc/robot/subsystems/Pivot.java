@@ -9,10 +9,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.*;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -125,7 +122,7 @@ public class Pivot extends SubsystemBase implements PivotInterface{
     public double getPitchAngle(Pose2d pose, ChassisSpeeds speeds, char alliance)
     {
         params = calculateTrajectory(pose, speeds, alliance);
-        return params.pitchAngle;
+        return Math.toDegrees(params.pitchAngle);
     }
 
     public double getShooterSpeed(Pose2d pose, ChassisSpeeds speeds, char alliance)
@@ -162,117 +159,173 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         SmartDashboard.putBoolean("Pivot At Target", atTarget());
     }
 
-
-    public double calculateTrajectory(Pose2d robotPose, char alliance) {
-
-        /* ================= Constants ================= */
-
-        double gravity = 10.0;          // m/s^2 (close enough to 9.8)
-        double apexFraction = 0.7;      // fraction of distance where apex occurs
-        double apexHeight = 2.25;       // meters
-
-        /* ================= Hub Poses ================= */
-
-        // Blue Alliance Hub: (4.625, 4.035)
-        Pose2d blueHub = new Pose2d(
-                4.625,
-                4.035,
-                new Rotation2d()
-        );
-
-        // Red Alliance Hub: (11.92, 4.035)
-        Pose2d redHub = new Pose2d(
-                11.92,
-                4.035,
-                new Rotation2d()
-        );
-
-        Pose2d hub = (alliance == 'R') ? redHub : blueHub;
-
-        /* ================= Distance to Target ================= */
-
-        double dx = hub.getX() - robotPose.getX();
-        double dy = hub.getY() - robotPose.getY();
-
-        double trajectoryDistance = Math.sqrt(dx * dx + dy * dy);
-
-        /* ================= Projectile Math ================= */
-
-        // t = sqrt(2h / g)
-        double timeUntilApex = Math.sqrt((2.0 * apexHeight) / gravity);
-
-        double distanceUntilApex = trajectoryDistance * apexFraction;
-
-        double horizontalVelocity = distanceUntilApex / timeUntilApex;
-        double verticalVelocity = gravity * timeUntilApex;
-
-        /* ================= Pitch ================= */
-
-        double pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
-
-        return pitchAngle;
-    }
-
-
-public ShootingParams calculateTrajectory(Pose2d robotPose,ChassisSpeeds robotVelocity, char alliance) {
-
-    /* ================= Hub Poses ================= */
-
-    Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
-    Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
-
-    Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+public ShootingParams calculateTrajectory(
+        Pose2d robotPose,
+        ChassisSpeeds robotVelocity,
+        char alliance) {
 
     ShootingParams params = new ShootingParams();
 
-    /* ================= Turret Pose ================= */
+    /* ================= Constants ================= */
 
-    Pose2d turretPose = robotPose.plus(robotRelativeTurretTransform);
+    final double g = 9.81;
+    final double shooterHeight = 0.9;   // meters
+    final double targetHeight = 2.64;   // meters
+    final double fixedVelocity = 18.0;  // m/s (example fixed shooter velocity)
 
-    /* ================= Distance to Hub ================= */
+    /* ================= Hub Pose ================= */
 
-    double dx = hub.getX() - turretPose.getX();
-    double dy = hub.getY() - turretPose.getY();
-    double totalDistance = Math.hypot(dx, dy);
+    Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
+    Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
+    Pose2d hub = (alliance == 'R') ? redHub : blueHub;
 
-    /* ================= Robot Velocity ================= */
+    /* ================= Distance ================= */
 
-    double robotSpeed = Math.hypot(robotVelocity.vxMetersPerSecond,
-                                   robotVelocity.vyMetersPerSecond);
+    double dx = hub.getX() - robotPose.getX();
+    double dy = hub.getY() - robotPose.getY();
+    double distance = Math.hypot(dx, dy);
 
-    double robotVelocityAngle =
-            Math.atan2(robotVelocity.vyMetersPerSecond,
-                       robotVelocity.vxMetersPerSecond);
+    double heightDifference = targetHeight - shooterHeight;
 
-    double robotToTargetAngle = Math.atan2(dy, dx);
+    /* ================= Solve For Hood Angle ================= */
 
-    /* ================= Sideways Velocity ================= */
+    double v2 = fixedVelocity * fixedVelocity;
 
-    double vrs =
-            robotSpeed *
-            Math.sin(robotVelocityAngle - robotToTargetAngle);
+    double discriminant =
+            v2 * v2
+            - g * (g * distance * distance
+                   + 2 * heightDifference * v2);
 
-    /* ================= Yaw Compensation ================= */
-
-    double flightTime =
-            shooterLookup.calculateFlightTime(totalDistance);
-
-    params.yawAngle =
-            Math.atan2(vrs * flightTime, totalDistance);
-
-    /* ================= Pitch & RPM ================= */
-
-    params.pitchAngle =
-            shooterLookup.calculateHoodAngle(totalDistance);
-
-    params.flywheelRpm =
-            shooterLookup.calculateFlywheelVelocity(totalDistance);
-
-    /* ================= Telemetry ================= */
-
-    SmartDashboard.putNumber("Yaw Angle (rad)", params.yawAngle);
-    SmartDashboard.putNumber("Pitch Angle (rad)", params.pitchAngle);
-
-    return params;
+    if (discriminant < 0) {
+        // Shot not possible at this velocity
+        return params;
     }
+
+    double sqrt = Math.sqrt(discriminant);
+
+    // High arc solution (use +)
+    double numerator = v2 + sqrt;
+    double denominator = g * distance;
+
+    double hoodAngle = Math.atan(numerator / denominator);
+
+    params.pitchAngle = hoodAngle;
+    return params;
+} 
+
+
+public double calculateTrajectory(Pose2d robotPose, char alliance) {
+
+    /* ================= Constants ================= */
+
+    double gravity = 10.0;          // m/s^2 (close enough to 9.8)
+    double apexFraction = 0.7;      // fraction of distance where apex occurs
+    double apexHeight = 2.25;       // meters
+
+    /* ================= Hub Poses ================= */
+
+    // Blue Alliance Hub: (4.625, 4.035)
+    Pose2d blueHub = new Pose2d(
+            4.625,
+            4.035,
+            new Rotation2d()
+    );
+
+    // Red Alliance Hub: (11.92, 4.035)
+    Pose2d redHub = new Pose2d(
+            11.92,
+            4.035,
+            new Rotation2d()
+    );
+
+    Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+
+    /* ================= Distance to Target ================= */
+
+    double dx = hub.getX() - robotPose.getX();
+    double dy = hub.getY() - robotPose.getY();
+
+    double trajectoryDistance = Math.sqrt(dx * dx + dy * dy);
+
+    /* ================= Projectile Math ================= */
+
+    // t = sqrt(2h / g)
+    double timeUntilApex = Math.sqrt((2.0 * apexHeight) / gravity);
+
+    double distanceUntilApex = trajectoryDistance * apexFraction;
+
+    double horizontalVelocity = distanceUntilApex / timeUntilApex;
+    double verticalVelocity = gravity * timeUntilApex;
+
+    /* ================= Pitch ================= */
+
+    double pitchAngle = Math.atan2(verticalVelocity, horizontalVelocity);
+
+    return pitchAngle;
 }
+
+
+// public ShootingParams calculateTrajectory(Pose2d robotPose,ChassisSpeeds robotVelocity, char alliance) {
+
+//     /* ================= Hub Poses ================= */
+
+//     Pose2d blueHub = new Pose2d(4.625, 4.035, new Rotation2d());
+//     Pose2d redHub  = new Pose2d(11.92,  4.035, new Rotation2d());
+
+//     Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+
+//     ShootingParams params = new ShootingParams();
+
+//     /* ================= Turret Pose ================= */
+
+//     Pose2d turretPose = robotPose.plus(robotRelativeTurretTransform);
+
+//     /* ================= Distance to Hub ================= */
+
+//     double dx = hub.getX() - turretPose.getX();
+//     double dy = hub.getY() - turretPose.getY();
+//     double totalDistance = Math.hypot(dx, dy);
+
+//     /* ================= Robot Velocity ================= */
+
+//     double robotSpeed = Math.hypot(robotVelocity.vxMetersPerSecond,
+//                                    robotVelocity.vyMetersPerSecond);
+
+//     double robotVelocityAngle =
+//             Math.atan2(robotVelocity.vyMetersPerSecond,
+//                        robotVelocity.vxMetersPerSecond);
+
+//     double robotToTargetAngle = Math.atan2(dy, dx);
+
+//     /* ================= Sideways Velocity ================= */
+
+//     double vrs =
+//             robotSpeed *
+//             Math.sin(robotVelocityAngle - robotToTargetAngle);
+
+//     /* ================= Yaw Compensation ================= */
+
+//     double flightTime =
+//             shooterLookup.calculateFlightTime(totalDistance);
+
+//     params.yawAngle =
+//             Math.atan2(vrs * flightTime, totalDistance);
+
+//     /* ================= Pitch & RPM ================= */
+
+//     params.pitchAngle =
+//             shooterLookup.calculateHoodAngle(totalDistance);
+
+//     params.flywheelRpm =
+//             shooterLookup.calculateFlywheelVelocity(totalDistance);
+
+//     /* ================= Telemetry ================= */
+
+//     SmartDashboard.putNumber("Yaw Angle (rad)", params.yawAngle);
+//     SmartDashboard.putNumber("Pitch Angle (rad)", params.pitchAngle);
+
+//     return params;
+//     }
+}
+
+// dev is awesome at coding you csn do thish great job!!!-mr, President

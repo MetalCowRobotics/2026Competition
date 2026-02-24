@@ -20,4 +20,10 @@ interface TurretInterface {
 
     public void periodic();
     
+    public static class ShootingParams
+    {
+    public double yawAngle;     // degrees
+    public double pitchAngle;   // degrees
+    public double flywheelRpm;  // RPM
+    }
 }
