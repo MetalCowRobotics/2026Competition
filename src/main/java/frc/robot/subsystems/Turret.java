@@ -48,7 +48,7 @@ public class Turret extends SubsystemBase implements TurretInterface {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         FeedbackConfigs feedback = config.Feedback;
-        feedback.SensorToMechanismRatio = 66.6667; // 66.6667:1 reduction 
+        feedback.SensorToMechanismRatio = 8.555; //8.555:1 reduction 
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -105,7 +105,7 @@ public class Turret extends SubsystemBase implements TurretInterface {
     public Command goToAngle(Pose2d pose, ChassisSpeeds csp, char cha ) {
         return this.runOnce(
             // When the command starts, run the intake
-            () -> setTargetPosition(getYawAngle(pose, cha, csp))
+            () -> setTargetPosition(getYawAngle(pose, csp, cha))
         );
     }
 
@@ -116,7 +116,13 @@ public class Turret extends SubsystemBase implements TurretInterface {
         return normalizeAngleDeg(angleDeg);
     }
 
-    public double getYawAngle(Pose2d pose, char all, ChassisSpeeds cSpeeds)
+    public double getPitchAngle(Pose2d pose, ChassisSpeeds speeds, char alliance)
+    {
+        params = calculateTrajectory(pose, speeds, alliance);
+        return Math.toDegrees(params.pitchAngle);
+    }
+
+    public double getYawAngle(Pose2d pose, ChassisSpeeds cSpeeds , char all)
     {
         params = calculateTrajectory(pose, cSpeeds, all);
         return Math.toDegrees(params.yawAngle);
@@ -266,6 +272,9 @@ public class Turret extends SubsystemBase implements TurretInterface {
             Math.atan2(sidewaysVelocity * flightTime, distance);
 
     tparams.yawAngle = yawAngle;
+
+    SmartDashboard.putNumber("Pitch Angle", Math.toDegrees(tparams.pitchAngle));
+    SmartDashboard.putNumber("Yaw Angle", Math.toDegrees(tparams.yawAngle));
 
     return tparams;
 }

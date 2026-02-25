@@ -49,6 +49,7 @@ public class RobotContainer {
     private final Vision vision;
     private final Pivot pivot;
     private final Turret turret;
+    private final Shooter shooter;
 
     private Pose2d pose;
     private char alliance;
@@ -63,6 +64,7 @@ public class RobotContainer {
         vision = new Vision(drivetrain);
         pivot = new Pivot();
         turret = new Turret();
+        shooter = new Shooter();
         
         pose = drivetrain.getState().Pose;
         cSpeeds = drivetrain.getState().Speeds;
@@ -115,6 +117,12 @@ public class RobotContainer {
         operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
        
         operatorController.a().onTrue(pivot.goToAngle(0).alongWith(turret.goToAngle(0)));
+
+        operatorController.b().onTrue(shooter.shootPhase1(pose, cSpeeds, alliance).alongWith(shooter.pivotBack()).
+                                    andThen(shooter.shootPhase2(pose, cSpeeds, alliance))
+                                    .andThen(shooter.shoot()));
+
+        operatorController.b().onFalse(shooter.shooterStop());
     }
 
     public Command getAutonomousCommand() {
