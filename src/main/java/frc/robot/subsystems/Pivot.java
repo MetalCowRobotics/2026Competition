@@ -45,7 +45,7 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         FeedbackConfigs feedback = config.Feedback;
-        feedback.SensorToMechanismRatio = 66.6667; // 66.6667:1 reduction 
+        feedback.SensorToMechanismRatio = 54.755; // 54.755:1 reduction 
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -80,7 +80,12 @@ public class Pivot extends SubsystemBase implements PivotInterface{
     public boolean atTarget() {
         return pidController.atSetpoint();
     }
- 
+
+    public void setSpeed(double s)
+    {
+        pivotMotor.set(s);
+    }
+
 
     public void setTargetPosition(double angleDeg) {
         targetAngleDeg = Math.max(
@@ -164,7 +169,7 @@ public ShootingParams calculateTrajectory(
         ChassisSpeeds robotVelocity,
         char alliance) {
 
-    ShootingParams params = new ShootingParams();
+    ShootingParams tparams = new ShootingParams();
 
     /* ================= Constants ================= */
 
@@ -198,7 +203,7 @@ public ShootingParams calculateTrajectory(
 
     if (discriminant < 0) {
         // Shot not possible at this velocity
-        return params;
+        return tparams;
     }
 
     double sqrt = Math.sqrt(discriminant);
@@ -209,8 +214,8 @@ public ShootingParams calculateTrajectory(
 
     double hoodAngle = Math.atan(numerator / denominator);
 
-    params.pitchAngle = hoodAngle;
-    return params;
+    tparams.pitchAngle = hoodAngle;
+    return tparams;
 } 
 
 
