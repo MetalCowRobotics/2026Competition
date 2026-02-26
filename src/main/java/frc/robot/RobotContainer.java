@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
@@ -50,6 +49,7 @@ public class RobotContainer {
     private final Pivot pivot;
     private final Turret turret;
     private final Shooter shooter;
+    private final Intake intake;
 
     private Pose2d pose;
     private char alliance;
@@ -65,6 +65,7 @@ public class RobotContainer {
         pivot = new Pivot();
         turret = new Turret();
         shooter = new Shooter();
+        intake = new Intake();
         
         pose = drivetrain.getState().Pose;
         cSpeeds = drivetrain.getState().Speeds;
@@ -113,14 +114,17 @@ public class RobotContainer {
         // Combined elevator and wrist controls for all positions
 
         drivetrain.registerTelemetry(logger::telemeterize);
+        
+        // This handles both starting and stopping automatically
+operatorController.x().whileTrue(intake.runIntakeCommand());
 
         operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
        
         operatorController.a().onTrue(pivot.goToAngle(0).alongWith(turret.goToAngle(0)));
 
-        operatorController.b().onTrue(shooter.shootPhase1(pose, cSpeeds, alliance).alongWith(shooter.pivotBack()).
-                                    andThen(shooter.shootPhase2(pose, cSpeeds, alliance))
-                                    .andThen(shooter.shoot()));
+       // operatorController.b().onTrue(shooter.shootPhase1(pose, cSpeeds, alliance).alongWith(shooter.pivotBack()).
+           //                        andThen(shooter.shootPhase2(pose, cSpeeds, alliance))
+           //                         .andThen(shooter.shoot()));
 
         operatorController.b().onFalse(shooter.shooterStop());
     }

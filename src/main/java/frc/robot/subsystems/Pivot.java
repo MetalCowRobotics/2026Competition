@@ -27,7 +27,7 @@ public class Pivot extends SubsystemBase implements PivotInterface{
 
     public Pivot() {
 
-        pivotMotor = new TalonFX(16);
+        pivotMotor = new TalonFX(19);
         pidController = new PIDController(0.05, 0, 0);
         pidController.setTolerance(0.5);
         shooterLookup = new ShooterLookup();
