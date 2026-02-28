@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 0.6315301204819277,
+        "y": 0.7676144578313244
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.639400994367114,
+        "y": 0.9929868137799207
+      },
+      "isLocked": false,
+      "linkedName": "HP-Pick"
+    },
+    {
+      "anchor": {
+        "x": 2.2597590361445783,
+        "y": 1.7838915662650607
+      },
+      "prevControl": {
+        "x": 1.9496965204952534,
+        "y": 1.6912167364553121
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "R-Shoot"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 700.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 38.83627017867455
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}
