@@ -24,7 +24,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Spindexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Vision;
-
+import frc.robot.subsystems.Feeder;
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.5).in(RadiansPerSecond); // 1/2 of a rotation per second
@@ -46,6 +46,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final Spindexer spindexer = new Spindexer();
     public final Intake intake = new Intake();
+    public final Feeder feeder = new Feeder();
     private final Vision vision;
 
     /* Path follower */
@@ -62,6 +63,10 @@ public class RobotContainer {
         autoLocationChooser.addOption("Left", new String("Left"));
         autoLocationChooser.addOption("Center", new String("Center"));
         autoLocationChooser.addOption("Right", new String("Right"));
+        //Named Commands
+        NamedCommands.registerCommand("Intake", intake.intakeIn());
+        NamedCommands.registerCommand("Spindexer", spindexer.runSpindexer());
+        NamedCommands.registerCommand("Feeder", feeder.runFeeder());
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
@@ -103,6 +108,20 @@ public class RobotContainer {
         if (operatorController.x().getAsBoolean()){
             intake.stopIntake();
         }
+
+        if (operatorController.rightBumper().getAsBoolean()){
+            intake.intakeOut();
+        }
+
+        if (operatorController.leftBumper().getAsBoolean()){
+            feeder.runFeeder();
+        }
+
+        if (operatorController.leftTrigger().getAsBoolean()){
+            feeder.stopFeeder();
+        }
+
+
         
 
 
