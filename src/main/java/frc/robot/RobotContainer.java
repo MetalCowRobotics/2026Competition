@@ -108,6 +108,20 @@ public class RobotContainer {
         if (operatorController.x().getAsBoolean()){
             intake.stopIntake();
         }
+
+        if (operatorController.rightBumper().getAsBoolean()){
+            intake.intakeOut();
+        }
+
+        if (operatorController.leftBumper().getAsBoolean()){
+            feeder.runFeeder();
+        }
+
+        if (operatorController.leftTrigger().getAsBoolean()){
+            feeder.stopFeeder();
+        }
+
+
         
 
 
