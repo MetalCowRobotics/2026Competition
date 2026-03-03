@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.7756067219711387,
-        "y": 5.931652719759377
+        "x": 2.254988984883929,
+        "y": 6.551329506121476
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.434602409638554,
-        "y": 5.652301204819277
+        "x": 0.6096746987951804,
+        "y": 5.958277108433736
       },
       "prevControl": {
-        "x": 2.643921822361702,
-        "y": 5.8863183344796575
+        "x": 1.0710678397529934,
+        "y": 6.153764765411991
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Shoot-Climb"
+      "linkedName": "At-Depot"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -35.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

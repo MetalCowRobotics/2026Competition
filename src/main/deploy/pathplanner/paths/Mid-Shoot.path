@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.782585244072042,
-        "y": 3.9545003347243894
+        "x": 3.7544128100515937,
+        "y": 3.9320001896677326
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.7187228915662653,
-        "y": 3.958506024096385
+        "x": 0.6096746987951804,
+        "y": 5.958277108433736
       },
       "prevControl": {
-        "x": 2.4687247727552117,
-        "y": 3.9594758647711092
+        "x": 0.3911042688731622,
+        "y": 6.079631824714991
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Mid-Shoot"
+      "linkedName": "At-Depot"
     }
   ],
   "rotationTargets": [],

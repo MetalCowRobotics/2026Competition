@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.434602409638554,
-        "y": 5.652301204819277
+        "x": 2.6012500000000007,
+        "y": 5.04997619047619
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.9288813577776684,
-        "y": 5.561730315338925
+        "x": -0.253928498072459,
+        "y": 3.9458640530627296
       },
       "isLocked": false,
       "linkedName": "Shoot-Climb"
@@ -20,8 +20,8 @@
         "y": 5.958277108433736
       },
       "prevControl": {
-        "x": 0.9222753394499414,
-        "y": 5.9368011802580325
+        "x": 0.8631887877772797,
+        "y": 6.060097205284914
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -35.0
+    "rotation": -41.72951207681642
   },
   "useDefaultConstraints": true
 }

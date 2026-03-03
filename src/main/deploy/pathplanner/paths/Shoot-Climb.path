@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.434602409638554,
-        "y": 5.652301204819277
+        "x": 0.6096746987951804,
+        "y": 5.958277108433736
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.6759465236194724,
-        "y": 5.804744431769461
+        "x": 1.5514814814814817,
+        "y": 4.3967663817663825
       },
       "isLocked": false,
-      "linkedName": "Shoot-Climb"
+      "linkedName": "At-Depot"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 3.6634578313253012
       },
       "prevControl": {
-        "x": 1.778386539527148,
-        "y": 3.831369541900907
+        "x": 1.8209841090748269,
+        "y": 3.7664147536766417
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -35.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

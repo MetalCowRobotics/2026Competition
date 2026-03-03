@@ -17,12 +17,6 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Pick-Depot"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Intake"

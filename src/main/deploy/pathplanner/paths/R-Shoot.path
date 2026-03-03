@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 2.2597590361445783,
-        "y": 1.7838915662650607
+        "x": 0.6315301204819277,
+        "y": 0.7676144578313244
       },
       "prevControl": {
-        "x": 2.009158956666335,
-        "y": 2.0268435713011197
+        "x": 0.3809300410036842,
+        "y": 1.0105664628673834
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "R-Shoot"
+      "linkedName": "HP-Pick"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 38.83627017867455
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

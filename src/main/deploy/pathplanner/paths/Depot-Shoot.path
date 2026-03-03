@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.76695512918085,
-        "y": 5.882569149860565
+        "x": 0.41866720282067804,
+        "y": 6.119572292743592
       },
       "isLocked": false,
       "linkedName": "At-Depot"
     },
     {
       "anchor": {
-        "x": 2.434602409638554,
-        "y": 5.652301204819277
+        "x": 2.6012500000000007,
+        "y": 5.04997619047619
       },
       "prevControl": {
-        "x": 1.7725594922734105,
-        "y": 5.732672600126391
+        "x": 1.014000000000001,
+        "y": 6.054154761904763
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -35.0
+    "rotation": -41.72951207681642
   },
   "reversed": false,
   "folder": null,

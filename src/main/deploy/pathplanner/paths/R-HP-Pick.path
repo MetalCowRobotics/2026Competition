@@ -12,7 +12,7 @@
         "y": 2.128680677241963
       },
       "isLocked": false,
-      "linkedName": "R-Shoot"
+      "linkedName": null
     },
     {
       "anchor": {
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 38.83627017867455
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

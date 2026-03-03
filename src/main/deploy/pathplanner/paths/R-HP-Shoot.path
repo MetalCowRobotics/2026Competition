@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.639400994367114,
-        "y": 0.9929868137799207
+        "x": 2.8172023809523825,
+        "y": 1.0548571428571438
       },
       "isLocked": false,
       "linkedName": "HP-Pick"
     },
     {
       "anchor": {
-        "x": 2.2597590361445783,
-        "y": 1.7838915662650607
+        "x": 1.5754761904761914,
+        "y": 3.667880952380952
       },
       "prevControl": {
-        "x": 1.9496965204952534,
-        "y": 1.6912167364553121
+        "x": 1.2654136748268665,
+        "y": 3.5752061225712035
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "R-Shoot"
+      "linkedName": "climb"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 38.83627017867455
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
