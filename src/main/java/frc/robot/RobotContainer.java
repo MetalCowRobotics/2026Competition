@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
@@ -46,7 +47,7 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Vision vision;
-    // private final Pivot pivot;
+    private final Pivot pivot;
     private final Turret turret;
     private final Shooter shooter;
     private final Intake intake;
@@ -64,7 +65,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-        // pivot = new Pivot();
+        pivot = new Pivot();
         turret = new Turret();
         shooter = new Shooter();
         intake = new Intake();
@@ -93,9 +94,7 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
-        //        DRIVE
+        // DRIVE COMMANDS
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -115,77 +114,43 @@ public class RobotContainer {
         );
 
 
-
-        //joystick.y().whileFalse(pivot.goToAngle(pose, alliance).alongWith(turret.goToAngle(pose, alliance)));
-        // This will start the Pivot and Turret movement on the first press, 
-        // and cancel them (returning to default) on the second press.
-        // joystick.y().toggleOnTrue(
-        //     pivot.goToAngle(pose, alliance)
-        //         .alongWith(turret.goToAngle(pose, alliance))
-        // );
-        // Combined elevator and wrist controls for all positions
-
         drivetrain.registerTelemetry(logger::telemeterize);
-        
-        // This handles both starting and stopping automatically
-        //operatorController.x().whileTrue(intake.runIntakeCommand());
+
+
+        // OPERATOR COMMANDS
+
 
         // 1. INTAKE TOGGLE (Button X)
         // Press once to start the intake, press again to stop.
-        // operatorController.x().toggleOnTrue(
-        //     intake.runIntakeCommand()
-        // );
+        operatorController.x().toggleOnTrue(
+            intake.runIntakeCommand()
+        );
 
         // 2. SPINDEXER + FEEDER TOGGLE (Button Y)
         // Press once to start BOTH, press again to stop BOTH.
-    //     operatorController.y().toggleOnTrue(
-    //        spindexer.runSpindexerCommand()
-    //            .alongWith(feeder.runFeederCommand())
-    //    );
-
-    // trying set target position
-    operatorController.b().whileTrue(
-        edu.wpi.first.wpilibj2.command.Commands.runOnce(
-            () -> turret.setTargetPosition(100),
-            turret
-        )
-    );
+        operatorController.y().toggleOnTrue(
+           spindexer.runSpindexerCommand()
+               .alongWith(feeder.runFeederCommand())
+       );
 
 
-    operatorController.a().whileTrue(
-        edu.wpi.first.wpilibj2.command.Commands.runOnce(
-            () -> turret.setTargetPosition(0),
-            turret
-        )
-    );
+        // playing with controller feedback for set target positions (Turret)
+        operatorController.a().whileTrue(
+            Commands.runOnce(
+                () -> turret.setTargetPosition(0),
+                turret
+            )
+        );
 
-    operatorController.y().whileTrue(
-        edu.wpi.first.wpilibj2.command.Commands.runOnce(
-            () -> turret.setTargetPosition(360),
-            turret
-        )
-    );
-// operatorController.b().onTrue(
-//     edu.wpi.first.wpilibj2.command.Commands.runOnce(
-//         () -> turret.setTargetPosition(0),
-//         turret
-//     )
-// );
+        operatorController.y().whileTrue(
+            Commands.runOnce(
+                () -> turret.setTargetPosition(360),
+                turret
+            )
+        );
 
-
-
-        // operatorController.a().onTrue(turret.setCustomSpeed(0.05));
-        // operatorController.b().toggleOnTrue(shooter.shoot());
-
-        //operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
-       
-
-        // operatorController.y().onTrue(pivot.goToAngle(50).alongWith(turret.goToAngle(80)));
-
-       // operatorController.b().onTrue(shooter.shootPhase1(pose, cSpeeds, alliance).alongWith(shooter.pivotBack()).
-           //                        andThen(shooter.shootPhase2(pose, cSpeeds, alliance))
-           //                         .andThen(shooter.shoot()));
-           SmartDashboard.putBoolean("Y Pressed", operatorController.getHID().getYButton());
+        operatorController.b().toggleOnTrue(shooter.shoot());
+    
     }
 
     public Command getAutonomousCommand() {

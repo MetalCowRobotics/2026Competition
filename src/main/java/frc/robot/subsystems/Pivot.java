@@ -18,7 +18,7 @@ import frc.robot.constants.ShooterConstants;
 public class Pivot extends SubsystemBase implements PivotInterface{
 
     private final TalonFX pivotMotor;
-    private final ShooterLookup shooterLookup;
+    private final shooterLookup shooterLookup;
 
     private double targetAngleDeg;
     private final PIDController pidController;
@@ -30,7 +30,7 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         pivotMotor = new TalonFX(19);
         pidController = new PIDController(0.05, 0, 0.02);
         pidController.setTolerance(3);
-        shooterLookup = new ShooterLookup();
+        shooterLookup = new shooterLookup();
         params = new ShootingParams();
         robotRelativeTurretTransform = new Transform2d(1, 1, new Rotation2d());
 

@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
     private final TalonFX intakeMotor;
@@ -40,17 +41,18 @@ public class Intake extends SubsystemBase {
         // Periodic code here (e.g., logging to SmartDashboard)
     }
 
-    // --- Commands ---
 
    public Command runIntakeCommand() {
-    // runEnd(StartAction, EndAction)
-    return this.runEnd(
-        () -> intakeMotor.set(-1), // What to do while button is held
-        () -> intakeMotor.set(0)    // What to do when button is released
-    );
-}
+        return this.startEnd(
+            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED),
+            () -> intakeMotor.set(0)
+        );
+    }
 
     public Command reverseIntakeCommand() {
-        return this.runOnce(() -> intakeMotor.set(-0.2));
+        return this.startEnd(
+            () -> intakeMotor.set(IntakeConstants.INTAKE_REVERSE_SPEED),
+            () -> intakeMotor.set(0)
+        );
     }
 }
