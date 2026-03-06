@@ -28,8 +28,8 @@ public class Pivot extends SubsystemBase implements PivotInterface{
     public Pivot() {
 
         pivotMotor = new TalonFX(19);
-        pidController = new PIDController(0.05, 0, 0);
-        pidController.setTolerance(0.5);
+        pidController = new PIDController(0.05, 0, 0.02);
+        pidController.setTolerance(3);
         shooterLookup = new ShooterLookup();
         params = new ShootingParams();
         robotRelativeTurretTransform = new Transform2d(1, 1, new Rotation2d());
@@ -153,7 +153,7 @@ public class Pivot extends SubsystemBase implements PivotInterface{
         double output = pidController.calculate(currentAngle);
 
         // Clamp PID output to motor-safe range
-        output = MathUtil.clamp(output, -0.6, 0.6);
+        output = MathUtil.clamp(output, -0.1, 0.1);
 
         //pivotMotor.set(output); //TODO: Add this back when testing
 
@@ -176,7 +176,7 @@ public ShootingParams calculateTrajectory(
     final double g = 9.81;
     final double shooterHeight = 0.9;   // meters
     final double targetHeight = 2.64;   // meters
-    final double fixedVelocity = 18.0;  // m/s (example fixed shooter velocity)
+    final double fixedVelocity = 12.0;  // m/s (example fixed shooter velocity)
 
     /* ================= Hub Pose ================= */
 
@@ -223,7 +223,7 @@ public double calculateTrajectory(Pose2d robotPose, char alliance) {
 
     /* ================= Constants ================= */
 
-    double gravity = 10.0;          // m/s^2 (close enough to 9.8)
+    double gravity = 9.81;          // m/s^2 (close enough to 9.8)
     double apexFraction = 0.7;      // fraction of distance where apex occurs
     double apexHeight = 2.25;       // meters
 

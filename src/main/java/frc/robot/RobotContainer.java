@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.5).in(RadiansPerSecond); // 1/2 of a rotation per second
+    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond); // 1/2 of a rotation per second
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -41,15 +41,17 @@ public class RobotContainer {
 
     public final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private final CommandXboxController joystick = new CommandXboxController(0); // Driver controller
-    private final CommandXboxController operatorController = new CommandXboxController(1); // Operator controller
+    public final CommandXboxController joystick = new CommandXboxController(0); // Driver controller
+    public final CommandXboxController operatorController = new CommandXboxController(1); // Operator controller
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Vision vision;
-    private final Pivot pivot;
+    // private final Pivot pivot;
     private final Turret turret;
     private final Shooter shooter;
     private final Intake intake;
+    private final Spindexer spindexer;
+    private final Feeder feeder;
 
     private Pose2d pose;
     private char alliance;
@@ -62,10 +64,12 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-        pivot = new Pivot();
+        // pivot = new Pivot();
         turret = new Turret();
         shooter = new Shooter();
         intake = new Intake();
+        spindexer = new Spindexer();
+        feeder = new Feeder();
         
         pose = drivetrain.getState().Pose;
         cSpeeds = drivetrain.getState().Speeds;
@@ -91,6 +95,7 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
+        //        DRIVE
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
@@ -109,32 +114,91 @@ public class RobotContainer {
             forwardStraight.withVelocityX(-0.5).withVelocityY(0))
         );
 
-        joystick.y().whileFalse(pivot.goToAngle(pose, alliance).alongWith(turret.goToAngle(pose, alliance)));
 
+
+        //joystick.y().whileFalse(pivot.goToAngle(pose, alliance).alongWith(turret.goToAngle(pose, alliance)));
+        // This will start the Pivot and Turret movement on the first press, 
+        // and cancel them (returning to default) on the second press.
+        // joystick.y().toggleOnTrue(
+        //     pivot.goToAngle(pose, alliance)
+        //         .alongWith(turret.goToAngle(pose, alliance))
+        // );
         // Combined elevator and wrist controls for all positions
 
         drivetrain.registerTelemetry(logger::telemeterize);
         
         // This handles both starting and stopping automatically
-operatorController.x().whileTrue(intake.runIntakeCommand());
+        //operatorController.x().whileTrue(intake.runIntakeCommand());
 
-        operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
+        // 1. INTAKE TOGGLE (Button X)
+        // Press once to start the intake, press again to stop.
+        // operatorController.x().toggleOnTrue(
+        //     intake.runIntakeCommand()
+        // );
+
+        // 2. SPINDEXER + FEEDER TOGGLE (Button Y)
+        // Press once to start BOTH, press again to stop BOTH.
+    //     operatorController.y().toggleOnTrue(
+    //        spindexer.runSpindexerCommand()
+    //            .alongWith(feeder.runFeederCommand())
+    //    );
+
+        // operatorController.a().onTrue(turret.goToAngle(60));
+        // operatorController.b().onTrue(turret.setTargetAngle(0));
+        //    operatorController.y().onTrue(turret.setTargetAngle(100));
+    //  operatorController.y()turret.setTargetAngle(100).scheduler());
+//     // operatorController.b().onTrue(turret.setTargetAngle(0));
+
+operatorController.b().whileTrue(
+    edu.wpi.first.wpilibj2.command.Commands.runOnce(
+        () -> turret.setTargetPosition(100),
+        turret
+    )
+);
+
+
+operatorController.a().whileTrue(
+    edu.wpi.first.wpilibj2.command.Commands.runOnce(
+        () -> turret.setTargetPosition(0),
+        turret
+    )
+);
+
+operatorController.y().whileTrue(
+    edu.wpi.first.wpilibj2.command.Commands.runOnce(
+        () -> turret.setTargetPosition(360),
+        turret
+    )
+);
+// operatorController.b().onTrue(
+//     edu.wpi.first.wpilibj2.command.Commands.runOnce(
+//         () -> turret.setTargetPosition(0),
+//         turret
+//     )
+// );
+
+
+
+        // operatorController.a().onTrue(turret.setCustomSpeed(0.05));
+        // operatorController.b().toggleOnTrue(shooter.shoot());
+
+        //operatorController.a().onTrue(pivot.goToAngle(pose, cSpeeds, alliance).alongWith(turret.goToAngle(pose, cSpeeds, alliance)));
        
-        operatorController.a().onTrue(pivot.goToAngle(0).alongWith(turret.goToAngle(0)));
+
+        // operatorController.y().onTrue(pivot.goToAngle(50).alongWith(turret.goToAngle(80)));
 
        // operatorController.b().onTrue(shooter.shootPhase1(pose, cSpeeds, alliance).alongWith(shooter.pivotBack()).
            //                        andThen(shooter.shootPhase2(pose, cSpeeds, alliance))
            //                         .andThen(shooter.shoot()));
-
-        operatorController.b().onFalse(shooter.shooterStop());
+           SmartDashboard.putBoolean("Y Pressed", operatorController.getHID().getYButton());
     }
 
     public Command getAutonomousCommand() {
         try{
             if(autoLocationChooser.getSelected().equals("Right")){
-                return new PathPlannerAuto(autoChooser.getSelected().getName(), true);
-            }else{
                 return new PathPlannerAuto(autoChooser.getSelected().getName(), false);
+            }else{
+                return new PathPlannerAuto(autoChooser.getSelected().getName(), true);
             }
         }catch(Exception e){
                 DriverStation.reportError("PathPlanner ERROR: " + e.getMessage(), e.getStackTrace());

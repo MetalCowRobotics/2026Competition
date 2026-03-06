@@ -19,7 +19,6 @@ public class Robot extends TimedRobot {
 
       private final boolean kUseLimelight = false;
       private Pivot pivot;
-      private Turret turret;
 
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
@@ -29,13 +28,14 @@ public class Robot extends TimedRobot {
     public Robot() {
         m_robotContainer = new RobotContainer();
         pivot = new Pivot();
-        turret = new Turret();
+
     }
 
     @Override
     public void robotPeriodic() {
       m_timeAndJoystickReplay.update();
       CommandScheduler.getInstance().run(); 
+      
       /*
       * This example of adding Limelight is very simple and may not be sufficient for on-field use.
       * Users typically need to provide a standard deviation that scales with the distance to target
@@ -46,7 +46,7 @@ public class Robot extends TimedRobot {
       */
 
       SmartDashboard.putNumber("Final Pitch Angle", pivot.getPitchAngle(m_robotContainer.drivetrain.getState().Pose, 'R'));
-      SmartDashboard.putNumber("Final Yaw Angle", turret.getYawAngle(m_robotContainer.drivetrain.getState().Pose, 'R'));
+      // SmartDashboard.putNumber("Final Yaw Angle", turret.getYawAngle(m_robotContainer.drivetrain.getState().Pose, 'R'));
 
       if (kUseLimelight) {
         var driveState = m_robotContainer.drivetrain.getState();

@@ -19,9 +19,9 @@ public class Intake extends SubsystemBase {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         // 5:1 gear reduction (Motor turns 5 times for every 1 mechanism rotation)
-        config.Feedback.SensorToMechanismRatio = 0.0; 
+        config.Feedback.SensorToMechanismRatio = 1; 
         
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         // Retry logic to ensure config is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -45,13 +45,12 @@ public class Intake extends SubsystemBase {
    public Command runIntakeCommand() {
     // runEnd(StartAction, EndAction)
     return this.runEnd(
-        () -> intakeMotor.set(-0.9), // What to do while button is held
+        () -> intakeMotor.set(-1), // What to do while button is held
         () -> intakeMotor.set(0)    // What to do when button is released
     );
 }
 
-    public Command stopIntakeCommand() {
-        // Explicitly stops the motor
-        return this.runOnce(() -> intakeMotor.set(0));
+    public Command reverseIntakeCommand() {
+        return this.runOnce(() -> intakeMotor.set(-0.2));
     }
 }

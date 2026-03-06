@@ -23,7 +23,7 @@ public class Vision extends SubsystemBase {
         boolean doRejectUpdate = false;
 
         // Front Left Limelight
-        PoseEstimate fleft = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-cow");
+        PoseEstimate fleft = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-fleft");
         if (fleft != null) {
             SmartDashboard.putString("Limelight Fleft", fleft.pose.toString());
             SmartDashboard.putNumber("Limelight Fleft.pose.x", fleft.pose.getX());
@@ -49,31 +49,29 @@ public class Vision extends SubsystemBase {
         }
         
 
-        // // Front Right Limelight
-        // doRejectUpdate = false;
-        // PoseEstimate fright = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-cow");
-        // if (fright != null) {
-        //     SmartDashboard.putString("Limelight Fright", fright.pose.toString());
-        //     SmartDashboard.putNumber("Limelight Fright.pose.x", fright.pose.getX());
-        //     SmartDashboard.putNumber("Limelight Fright.pose.y", fright.pose.getY());
-        //     SmartDashboard.putNumber("Limelight Fright Tag Count", fright.tagCount);
-
-        //     doRejectUpdate = shouldRejectUpdate(fright, 4);
-
-        //     if (!doRejectUpdate) {
-        //         double[] stdDevs = calculateStdDevs(fright);
+         // Front Right Limelight
+         doRejectUpdate = false;
+         PoseEstimate fright = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-fright");
+         if (fright != null) {
+             SmartDashboard.putString("Limelight Fright", fright.pose.toString());
+             SmartDashboard.putNumber("Limelight Fright.pose.x", fright.pose.getX());
+             SmartDashboard.putNumber("Limelight Fright.pose.y", fright.pose.getY());
+             SmartDashboard.putNumber("Limelight Fright Tag Count", fright.tagCount);
+             doRejectUpdate = shouldRejectUpdate(fright, 4);
+             if (!doRejectUpdate) {
+                 double[] stdDevs = calculateStdDevs(fright);
                 
-        //         drivetrain.addVisionMeasurement(
-        //             new Pose2d(
-        //             fright.pose.getX(),
-        //             fright.pose.getY(),
-        //             fright.pose.getRotation()
-        //             ),
-        //             fright.timestampSeconds,
-        //             VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
-        //         );
-        //     }
-        // }
+                 drivetrain.addVisionMeasurement(
+                     new Pose2d(
+                     fright.pose.getX(),
+                     fright.pose.getY(),
+                     fright.pose.getRotation()
+                     ),
+                     fright.timestampSeconds,
+                     VecBuilder.fill(stdDevs[0], stdDevs[1], stdDevs[2])
+                 );
+             }
+         }
     }
 
     private double[] calculateStdDevs(PoseEstimate estimate) {

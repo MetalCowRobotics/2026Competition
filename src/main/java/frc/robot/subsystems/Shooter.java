@@ -24,7 +24,7 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
     private final TalonFX shooterMotor1;
     private final TalonFX shooterMotor2;
     private final Pivot pivot;
-    private final Turret turret;
+    // private final Turret turret;
     private double targetPosition;
     private boolean shooterEnabled = false;
 
@@ -35,25 +35,33 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
 
         pivot = new Pivot();
-        turret = new Turret();
+        // turret = new Turret();
 
         params=new ShootingParams();
 
         // Configure the motor
-        SparkMaxConfig config = new SparkMaxConfig();
         configureMotors();
     }
 
-    private void configureMotors() {
-        TalonFXConfiguration config = new TalonFXConfiguration();
+   private void configureMotors() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
 
-        // Configure gear ratio and mechanical conversion
-        FeedbackConfigs feedback = config.Feedback;
-        feedback.SensorToMechanismRatio = 5.0; // 5:1 gear reduction
+    // 1. Ramp and PID
+    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1.0; // 1 second ramp
+    var slot0 = config.Slot0;
+    slot0.kP = 5; 
+    slot0.kV = 130; 
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 150.0; // Limit motor heat
 
-       // Configure shooter motor one
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        StatusCode status = StatusCode.StatusCodeNotInitialized;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 70.0; // Limit battery draw
+    // 2. Mechanics
+    config.Feedback.SensorToMechanismRatio = 0.977778;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
+
+    StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
             status = shooterMotor1.getConfigurator().apply(config);
             if (status.isOK()) break;
@@ -64,7 +72,19 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
 
         // Configure shooter motor two
         // config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    
+         config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1; // 1 second ramp
+    slot0.kP = 5; 
+    slot0.kV = 0.12; 
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 150.0; // Limit motor heat
+
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 70.0; // Limit battery draw
+    // 2. Mechanics
+    config.Feedback.SensorToMechanismRatio = 0.977778;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
         status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
             status = shooterMotor2.getConfigurator().apply(config);
@@ -73,9 +93,9 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         if (!status.isOK()) {
             System.out.println("Could not configure follower motor. Error: " + status.toString());
         }
-
-        shooterMotor2.setControl(new StrictFollower(14));
-    }
+    // 5. Follower logic
+    shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
+}
 
     public void setTargetPosition(double positionMeters) {
         targetPosition = positionMeters;
@@ -93,21 +113,7 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         shooterEnabled = !shooterEnabled;
     }
 
-    public Command stopIntakeCommand() {
-        return this.runOnce( () -> shooterMotor1.set(0));
-    }
-
-    public Command startIntakeCommand(double speed) {
-        return this.startEnd(
-            // When the command starts, run the intake
-            () -> shooterMotor1.set(speed),
-            // When the command ends, stop the intake
-            () -> shooterMotor1.set(0)
-        );
-    }
-
     public void stop() {
-        shooterMotor1.set(0);
         shooterMotor1.set(0);
     }
 
@@ -118,13 +124,13 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         );
     }
     
-    public Command shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    {
-        return this.runOnce(
-            // When the command starts, run the intake
-            () -> setTargetPosition(turret.getYawAngle(robotPose, robotVelocity, alliance))
-        );
-    }
+    // public Command shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
+    // {
+    //     return this.runOnce(
+    //         // When the command starts, run the intake
+    //         () -> setTargetPosition(turret.getYawAngle(robotPose, robotVelocity, alliance))
+    //     );
+    // }
 
     public Command shootPhase2(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
     {
@@ -134,13 +140,19 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         );
     }
 
-    public Command shoot()
-    {
-        return this.runOnce(
-            // When the command starts, run the intake
-            () -> shooterMotor1.set(0.5)
-        );
-    }
+    // Create a reusable velocity request
+private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
+    new com.ctre.phoenix6.controls.VelocityVoltage(20);
+
+public Command shoot() {
+    double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
+    
+    return this.run(() -> {
+        // Apply velocity control to motor 1 (motor 2 follows)
+        shooterMotor1.set(1);
+    });
+}
+    
 
 
     public Command pivotBack()
