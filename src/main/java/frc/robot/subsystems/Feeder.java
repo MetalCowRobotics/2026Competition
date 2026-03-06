@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.FeederConstants;
 
 public class Feeder extends SubsystemBase {
     private final TalonFX feederMotor;
@@ -43,8 +44,8 @@ public class Feeder extends SubsystemBase {
      */
     public Command runFeederCommand() {
         return this.runEnd(
-            () -> feederMotor.set(1.0),
-            () -> feederMotor.set(0)
+            () -> feederMotor.set(FeederConstants.FEEDER_FAST_SPEED),
+            () -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED)
         );
     }
 
@@ -53,12 +54,12 @@ public class Feeder extends SubsystemBase {
      */
     public Command slowFeedCommand() {
         return this.runEnd(
-            () -> feederMotor.set(0.2),
-            () -> feederMotor.set(0)
+            () -> feederMotor.set(FeederConstants.FEEDER_SLOW_SPEED),
+            () -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED)
         );
     }
 
     public Command stopFeederCommand() {
-        return this.runOnce(() -> feederMotor.set(0));
+        return this.runOnce(() -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED));
     }
 }

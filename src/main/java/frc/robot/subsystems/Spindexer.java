@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.SpindexerConstants;
 
 public class Spindexer extends SubsystemBase {
     private final TalonFX spindexerMotor;
@@ -42,8 +43,8 @@ public class Spindexer extends SubsystemBase {
      */
     public Command runSpindexerCommand() {
         return this.runEnd(
-            () -> spindexerMotor.set(0.4), // 50% power is usually enough for indexing
-            () -> spindexerMotor.set(0)
+            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED), // 50% power is usually enough for indexing
+            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED)
         );
     }
 
@@ -52,12 +53,12 @@ public class Spindexer extends SubsystemBase {
      */
     public Command reverseSpindexerCommand() {
         return this.runEnd(
-            () -> spindexerMotor.set(-0.3),
-            () -> spindexerMotor.set(0)
+            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_REVERSE_SPEED),
+            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED)
         );
     }
 
     public Command stopSpindexerCommand() {
-        return this.runOnce(() -> spindexerMotor.set(0));
+        return this.runOnce(() -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED));
     }
 }
