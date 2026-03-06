@@ -53,19 +53,17 @@ public class Turret extends SubsystemBase{
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        //  StatusCode status = StatusCode.StatusCodeNotInitialized;
-        // for (int i = 0; i < 5; i++) {
-        //     status = turretMotor.getConfigurator().apply(config);
-        //     if (status.isOK()) break;
-        // }
+         StatusCode status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; i++) {
+            status = turretMotor.getConfigurator().apply(config);
+            if (status.isOK()) break;
+        }
 
-        turretMotor.getConfigurator().apply(config);
-
-        // if (!status.isOK()) {
-        //     System.out.println(
-        //         "Turret motor config failed: " + status.toString()
-        //     );
-        // }
+        if (!status.isOK()) {
+            System.out.println(
+                "Turret motor config failed: " + status.toString()
+            );
+        }
     }
 
     public void setTargetPosition(double angleDeg){
@@ -74,6 +72,8 @@ public class Turret extends SubsystemBase{
 
     public double getCurrentAngleDeg() {
         return (turretMotor.getPosition().getValueAsDouble()/0.1182) * 360;
+        // Derieved 0.1182 by seeing what is the position of the turret motor after one rotation. 
+        // TODO: may need to change 0.1182
     }
 
 
@@ -105,6 +105,7 @@ public class Turret extends SubsystemBase{
         SmartDashboard.putNumber("Turret Target (deg)", targetAngle);
         // SmartDashboard.putBoolean("Turret At Target", atTarget());
     }
+}
 
     
     // public boolean atTarget() {
@@ -191,40 +192,40 @@ public class Turret extends SubsystemBase{
    
 
 
-    public double calculateTrajectory(Pose2d robotPose, char alliance) {
+//     public double calculateTrajectory(Pose2d robotPose, char alliance) {
 
-        /* ================= Hub Poses ================= */
+//         /* ================= Hub Poses ================= */
 
-        // Blue Alliance Hub: (4.625, 4.035)
-        Pose2d blueHub = new Pose2d(
-                4.625,
-                4.035,
-                new Rotation2d()
-        );
+//         // Blue Alliance Hub: (4.625, 4.035)
+//         Pose2d blueHub = new Pose2d(
+//                 4.625,
+//                 4.035,
+//                 new Rotation2d()
+//         );
 
-        // Red Alliance Hub: (11.92, 4.035)
-        Pose2d redHub = new Pose2d(
-                11.92,
-                4.035,
-                new Rotation2d()
-        );
+//         // Red Alliance Hub: (11.92, 4.035)
+//         Pose2d redHub = new Pose2d(
+//                 11.92,
+//                 4.035,
+//                 new Rotation2d()
+//         );
 
-        Pose2d hub = (alliance == 'R') ? redHub : blueHub;
+//         Pose2d hub = (alliance == 'R') ? redHub : blueHub;
 
-        /* ================= Distance to Target ================= */
+//         /* ================= Distance to Target ================= */
 
-        double dx = hub.getX() - robotPose.getX();
-        double dy = hub.getY() - robotPose.getY();
+//         double dx = hub.getX() - robotPose.getX();
+//         double dy = hub.getY() - robotPose.getY();
 
-        /* ================= Yaw ================= */
+//         /* ================= Yaw ================= */
 
-        double angle = Math.atan2(dy, dx);
+//         double angle = Math.atan2(dy, dx);
 
-        /* ================= Projectile Math ================= */
+//         /* ================= Projectile Math ================= */
 
-        return angle;
-    }
-}
+//         return angle;
+//     }
+// }
 
 //     // public ShootingParams calculateTrajectory(
 //     //     Pose2d robotPose,

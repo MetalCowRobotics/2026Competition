@@ -143,33 +143,28 @@ public class RobotContainer {
     //            .alongWith(feeder.runFeederCommand())
     //    );
 
-        // operatorController.a().onTrue(turret.goToAngle(60));
-        // operatorController.b().onTrue(turret.setTargetAngle(0));
-        //    operatorController.y().onTrue(turret.setTargetAngle(100));
-    //  operatorController.y()turret.setTargetAngle(100).scheduler());
-//     // operatorController.b().onTrue(turret.setTargetAngle(0));
-
-operatorController.b().whileTrue(
-    edu.wpi.first.wpilibj2.command.Commands.runOnce(
-        () -> turret.setTargetPosition(100),
-        turret
-    )
-);
+    // trying set target position
+    operatorController.b().whileTrue(
+        edu.wpi.first.wpilibj2.command.Commands.runOnce(
+            () -> turret.setTargetPosition(100),
+            turret
+        )
+    );
 
 
-operatorController.a().whileTrue(
-    edu.wpi.first.wpilibj2.command.Commands.runOnce(
-        () -> turret.setTargetPosition(0),
-        turret
-    )
-);
+    operatorController.a().whileTrue(
+        edu.wpi.first.wpilibj2.command.Commands.runOnce(
+            () -> turret.setTargetPosition(0),
+            turret
+        )
+    );
 
-operatorController.y().whileTrue(
-    edu.wpi.first.wpilibj2.command.Commands.runOnce(
-        () -> turret.setTargetPosition(360),
-        turret
-    )
-);
+    operatorController.y().whileTrue(
+        edu.wpi.first.wpilibj2.command.Commands.runOnce(
+            () -> turret.setTargetPosition(360),
+            turret
+        )
+    );
 // operatorController.b().onTrue(
 //     edu.wpi.first.wpilibj2.command.Commands.runOnce(
 //         () -> turret.setTargetPosition(0),
