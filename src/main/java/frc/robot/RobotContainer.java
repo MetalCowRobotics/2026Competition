@@ -66,7 +66,7 @@ public class RobotContainer {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
         pivot = new Pivot();
-        turret = new Turret();
+        turret = new Turret(drivetrain);
         shooter = new Shooter();
         intake = new Intake();
         spindexer = new Spindexer();

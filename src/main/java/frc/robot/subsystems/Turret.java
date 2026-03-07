@@ -10,15 +10,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.*;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.LimelightHelpers;
+import frc.robot.Robot;
 
 public class Turret extends SubsystemBase{
 
     private final TalonFX turretMotor;
+    private final CommandSwerveDrivetrain drivetrain;
 
     public double targetAngleDeg = 0;
     public double currentAngleDeg = 0;
@@ -27,9 +32,10 @@ public class Turret extends SubsystemBase{
     // private Transform2d robotRelativeTurretTransform;
     // private ShootingParams params;
 
-    public Turret() {
+    public Turret(CommandSwerveDrivetrain drivetrain) {
 
         turretMotor = new TalonFX(30);
+        this.drivetrain = drivetrain;
         
         // pidController = new PIDController(0.005, 0, 0.0002);
         // pidController.setTolerance(3);
@@ -97,9 +103,23 @@ public class Turret extends SubsystemBase{
         double currentAngle = getCurrentAngleDeg();
         double targetAngle = this.targetAngleDeg;
 
-        // double output = pidController.calculate(currentAngle, targetAngleDeg);
+        Translation2d blueHub = new Translation2d(182.11,158.845);
+        Translation2d redHub = new Translation2d(469.11,158.845);
+        Pose2d robotPos = drivetrain.getState().Pose;
 
-        turretMotor.set((targetAngle - currentAngle) * 0.0005);
+
+        targetAngle = Math.asin( (redHub.getX() - robotPos.getX())/
+        (    Math.sqrt(Math.pow((redHub.getX() - robotPos.getX()),2) + 
+        Math.pow((redHub.getY() - robotPos.getY()),2))     )      
+        );
+
+        targetAngle = robotPos.getRotation().getDegrees() - targetAngle;
+
+
+
+
+
+        // turretMotor.set((targetAngle - currentAngle) * 0.0005);
 
         SmartDashboard.putNumber("Turret Angle (deg)", currentAngle);
         SmartDashboard.putNumber("Turret Target (deg)", targetAngle);
