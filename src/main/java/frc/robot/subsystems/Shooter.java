@@ -23,7 +23,6 @@ import frc.robot.constants.ShooterConstants;
 public class Shooter extends SubsystemBase implements ShooterInterface {
     private final TalonFX shooterMotor1;
     private final TalonFX shooterMotor2;
-    private final Pivot pivot;
     // private final Turret turret;
     private double targetPosition;
     private boolean shooterEnabled = false;
@@ -34,7 +33,6 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         shooterMotor1 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ONE_ID);
         shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
 
-        pivot = new Pivot();
         // turret = new Turret();
 
         params=new ShootingParams();
@@ -132,14 +130,6 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
     //     );
     // }
 
-    public Command shootPhase2(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    {
-        return this.runOnce(
-            // When the command starts, run the intake
-            () -> setTargetPosition(pivot.getPitchAngle(robotPose, robotVelocity, alliance))
-        );
-    }
-
     // Create a reusable velocity request
 private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
     new com.ctre.phoenix6.controls.VelocityVoltage(20);
@@ -154,15 +144,6 @@ public Command shoot() {
 }
     
 
-
-    public Command pivotBack()
-    {
-        return this.startEnd(
-            // When the command starts, run the intake
-            () -> pivot.setSpeed(-0.3),
-            () -> pivot.setSpeed(0)
-        );
-    }
 
 
     // public ShootingParams shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)

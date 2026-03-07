@@ -5,24 +5,28 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Turret extends SubsystemBase {
 
     private final TalonFX turretMotor;
+    private final TalonFX pivotMotor;
     private final CommandSwerveDrivetrain drivetrain;
 
-    public double targetAngleDeg = 0;
-    private final double TOLERANCE_DEG = 2.0;
-    private final double KP = 0.003; // Matches your current speed multiplier
+    // Control Request objects for Phoenix 6
+    private final PositionVoltage pivotPositionRequest = new PositionVoltage(0);
+
+    private double targetPivotPitchDeg = 0; // The "Hood" angle relative to the turret
+    private final double KP = 0.004; 
 
     public Turret(CommandSwerveDrivetrain drivetrain) {
         turretMotor = new TalonFX(30);
+        pivotMotor = new TalonFX(14);
         this.drivetrain = drivetrain;
 
         configureMotors();
@@ -30,77 +34,272 @@ public class Turret extends SubsystemBase {
 
     public void configureMotors() {
         TalonFXConfiguration config = new TalonFXConfiguration();
-
-        // 11:1 reduction - FeedbackConfigs handles the gear ratio math
+        
+        // Setup for 11:1 ratio
         config.Feedback.SensorToMechanismRatio = 11; 
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        StatusCode status = StatusCode.StatusCodeNotInitialized;
-        for (int i = 0; i < 5; i++) {
-            status = turretMotor.getConfigurator().apply(config);
-            if (status.isOK()) break;
-        }
+        // PID for the Pivot Motor to follow the Turret precisely
+        // You may need to tune these values for your specific weight/friction
+        config.Slot0.kP = 0.004; // Example P gain for Position Control
+        config.Slot0.kI = 0.0;
+        config.Slot0.kD = 0.1;
 
-        if (!status.isOK()) {
-            System.out.println("Turret motor config failed: " + status.toString());
-        }
-    }
-
-    /**
-     * Gets the current turret angle in degrees. 
-     * Since SensorToMechanismRatio is 11, getPosition() returns mechanism rotations.
-     */
-    public double getCurrentAngleDeg() {
-        return turretMotor.getPosition().getValueAsDouble() * 360.0;
-    }
-
-    public void setSpeed(double targetSpeed) {
-        turretMotor.set(targetSpeed);
-    }
-
-    public Command stopCommand() {
-        return this.runOnce(() -> turretMotor.set(0));
+        turretMotor.getConfigurator().apply(config);
+        pivotMotor.getConfigurator().apply(config); // Same config since ratios match
     }
 
     @Override
     public void periodic() {
-        double currentAngle = getCurrentAngleDeg();
-        
-        // Target Hub Location (Red Hub example)
+        // 1. Existing Turret Tracking Logic
+        double currentTurretAngle = turretMotor.getPosition().getValueAsDouble() * 360.0;
         Translation2d redHub = new Translation2d(469.11, 158.845);
         Pose2d robotPos = drivetrain.getState().Pose;
 
-        // 1. Calculate the angle from the robot to the hub on the field
-        // Math.atan2(y, x) returns the angle in radians
-        double angleToHubRad = Math.atan2(
-            redHub.getY() - robotPos.getY(),
-            redHub.getX() - robotPos.getX()
-        );
+        double angleToHubRad = Math.atan2(redHub.getY() - robotPos.getY(), redHub.getX() - robotPos.getX());
+        double robotRelativeTarget = Math.toDegrees(angleToHubRad) + robotPos.getRotation().getDegrees();
+        double error = MathUtil.inputModulus(robotRelativeTarget - currentTurretAngle, -180, 180);
 
-        // 2. Convert to degrees and subtract robot rotation to get "Robot Relative" target
-        double fieldTargetDeg = Math.toDegrees(angleToHubRad);
-        double robotRelativeTarget = fieldTargetDeg + robotPos.getRotation().getDegrees();
-
-        // 3. THE CONTINUOUS FIX: Calculate the shortest distance to the target
-        // This prevents the turret from spinning 350 degrees to reach -10 from +10.
-        double error = MathUtil.inputModulus(robotRelativeTarget - currentAngle, -180, 180);
-
-        // 4. Apply Tolerance and Motor Output
-        if (Math.abs(error) < TOLERANCE_DEG) {
-            turretMotor.set(0); // Within 2 degrees, stop moving
+        // Continue using your power-based turret tracking
+        if (Math.abs(error) < 1.0) {
+            turretMotor.set(0);
         } else {
-            // Maintains your existing speed scaling
-            turretMotor.set(error * KP); 
+            turretMotor.set(error * KP);
         }
+         if (Math.abs(error) < 1.0) {
+            pivotMotor.set(0);
+        } else {
+            pivotMotor.set(error * KP);
+        }
+        // 2. COAXIAL POSITION SYNC
+        // Get the actual position of the turret in rotations
+        double turretRotations = turretMotor.getPosition().getValueAsDouble();
 
         // Telemetry
-        SmartDashboard.putNumber("Turret Angle (deg)", currentAngle);
-        SmartDashboard.putNumber("Turret Target (deg)", robotRelativeTarget);
-        SmartDashboard.putNumber("Turret Error (deg)", error);
-        SmartDashboard.putBoolean("Turret At Target", Math.abs(error) < TOLERANCE_DEG);
+        SmartDashboard.putNumber("Turret Motor Pos", turretRotations);
+    }
+
+    public void setPivotPitch(double degrees) {
+        this.targetPivotPitchDeg = degrees;
     }
 }
+// package frc.robot.subsystems;
+
+// import com.ctre.phoenix6.StatusCode;
+// import com.ctre.phoenix6.configs.TalonFXConfiguration;
+// import com.ctre.phoenix6.hardware.TalonFX;
+// import com.ctre.phoenix6.signals.InvertedValue;
+// import com.ctre.phoenix6.signals.NeutralModeValue;
+// import com.ctre.phoenix6.controls.DutyCycleOut;
+// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+// import edu.wpi.first.math.MathUtil;
+// import edu.wpi.first.math.geometry.Pose2d;
+// import edu.wpi.first.math.geometry.Translation2d;
+// import edu.wpi.first.wpilibj2.command.Command;
+// import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+// public class Turret extends SubsystemBase {
+
+//     private final TalonFX turretMotor;
+//     private final TalonFX pivotMotor; // CAN ID 19
+//     private final CommandSwerveDrivetrain drivetrain;
+
+//     // Turret Constants
+//     private final double TURRET_GEAR_RATIO = 11.0;
+//     private final double TURRET_KP = 0.003;
+//     private final double TURRET_TOLERANCE_DEG = 2.0;
+
+//     // Pivot Constants
+//     private final double PIVOT_GEAR_RATIO = 39.1; // Update this to your actual hood ratio
+//     private final double PIVOT_KP = 0.001;         // Tune this for hood responsiveness
+//     private double targetPivotAngleDeg = 0;
+
+//     public Turret(CommandSwerveDrivetrain drivetrain) {
+//         turretMotor = new TalonFX(30);
+//         pivotMotor = new TalonFX(19);
+//         this.drivetrain = drivetrain;
+
+//         configureMotors();
+//     }
+
+//     public void configureMotors() {
+//         // --- Turret Config ---
+//         TalonFXConfiguration turretConfig = new TalonFXConfiguration();
+//         turretConfig.Feedback.SensorToMechanismRatio = TURRET_GEAR_RATIO; 
+//         turretConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+//         turretConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+//         // --- Pivot Config ---
+//         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
+//         pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
+//         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+//         // Adjust inversion based on your mechanical assembly
+//         pivotConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive; 
+
+//         applyConfig(turretMotor, turretConfig);
+//         applyConfig(pivotMotor, pivotConfig);
+//     }
+
+//     private void applyConfig(TalonFX motor, TalonFXConfiguration config) {
+//         StatusCode status = StatusCode.StatusCodeNotInitialized;
+//         for (int i = 0; i < 5; i++) {
+//             status = motor.getConfigurator().apply(config);
+//             if (status.isOK()) break;
+//         }
+//     }
+
+//     public double getCurrentTurretAngleDeg() {
+//         return turretMotor.getPosition().getValueAsDouble() * 360.0;
+//     }
+
+//     public double getCurrentPivotAngleDeg() {
+//         return pivotMotor.getPosition().getValueAsDouble() * 360.0;
+//     }
+
+//     public void setPivotTarget(double degrees) {
+//         this.targetPivotAngleDeg = degrees;
+//     }
+
+//     @Override
+//     public void periodic() {
+//         // --- 1. TURRET LOGIC (Existing) ---
+//         double currentTurretAngle = getCurrentTurretAngleDeg();
+//         Translation2d redHub = new Translation2d(469.11, 158.845);
+//         Pose2d robotPos = drivetrain.getState().Pose;
+
+//         double angleToHubRad = Math.atan2(redHub.getY() - robotPos.getY(), redHub.getX() - robotPos.getX());
+//         double robotRelativeTarget = Math.toDegrees(angleToHubRad) + robotPos.getRotation().getDegrees();
+//         double turretError = MathUtil.inputModulus(robotRelativeTarget - currentTurretAngle, -180, 180);
+
+//         double turretOutput = (Math.abs(turretError) < TURRET_TOLERANCE_DEG) ? 0 : turretError * TURRET_KP;
+//         turretMotor.set(turretOutput);
+
+//         // --- 2. PIVOT COAXIAL LOGIC ---
+//         double currentPivotAngle = getCurrentPivotAngleDeg();
+//         double pivotError = targetPivotAngleDeg - currentPivotAngle;
+        
+//         /* * COAXIAL COMPENSATION:
+//          * We add the turret's current velocity (or output) to the pivot's output.
+//          * If the turret moves, the pivot "fights" that movement to stay still 
+//          * relative to the turret base.
+//          */
+//         double pivotPIDOutput = pivotError * PIVOT_KP;
+//         double coaxialCompensation = -(turretOutput);
+        
+//         // Final pivot power = move to target + cancel out turret movement
+//         pivotMotor.set(pivotPIDOutput + coaxialCompensation);
+
+//         // Telemetry
+//         SmartDashboard.putNumber("Turret Angle", currentTurretAngle);
+//         SmartDashboard.putNumber("Pivot Angle", currentPivotAngle);
+//         SmartDashboard.putNumber("Pivot Target", targetPivotAngleDeg);
+//     }
+// }
+
+// package frc.robot.subsystems;
+
+// import com.ctre.phoenix6.StatusCode;
+// import com.ctre.phoenix6.configs.TalonFXConfiguration;
+// import com.ctre.phoenix6.hardware.TalonFX;
+// import com.ctre.phoenix6.signals.InvertedValue;
+// import com.ctre.phoenix6.signals.NeutralModeValue;
+// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+// import edu.wpi.first.math.MathUtil;
+// import edu.wpi.first.math.geometry.Pose2d;
+// import edu.wpi.first.math.geometry.Translation2d;
+// import edu.wpi.first.wpilibj2.command.Command;
+// import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+// public class Turret extends SubsystemBase {
+
+//     private final TalonFX turretMotor;
+//     private final CommandSwerveDrivetrain drivetrain;
+
+//     public double targetAngleDeg = 0;
+//     private final double TOLERANCE_DEG = 2.0;
+//     private final double KP = 0.003; // Matches your current speed multiplier
+
+//     public Turret(CommandSwerveDrivetrain drivetrain) {
+//         turretMotor = new TalonFX(30);
+//         this.drivetrain = drivetrain;
+
+//         configureMotors();
+//     }
+
+//     public void configureMotors() {
+//         TalonFXConfiguration config = new TalonFXConfiguration();
+
+//         // 11:1 reduction - FeedbackConfigs handles the gear ratio math
+//         config.Feedback.SensorToMechanismRatio = 11; 
+//         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+//         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+//         StatusCode status = StatusCode.StatusCodeNotInitialized;
+//         for (int i = 0; i < 5; i++) {
+//             status = turretMotor.getConfigurator().apply(config);
+//             if (status.isOK()) break;
+//         }
+
+//         if (!status.isOK()) {
+//             System.out.println("Turret motor config failed: " + status.toString());
+//         }
+//     }
+
+//     /**
+//      * Gets the current turret angle in degrees. 
+//      * Since SensorToMechanismRatio is 11, getPosition() returns mechanism rotations.
+//      */
+//     public double getCurrentAngleDeg() {
+//         return turretMotor.getPosition().getValueAsDouble() * 360.0;
+//     }
+
+//     public void setSpeed(double targetSpeed) {
+//         turretMotor.set(targetSpeed);
+//     }
+
+//     public Command stopCommand() {
+//         return this.runOnce(() -> turretMotor.set(0));
+//     }
+
+//     @Override
+//     public void periodic() {
+//         double currentAngle = getCurrentAngleDeg();
+        
+//         // Target Hub Location (Red Hub example)
+//         Translation2d redHub = new Translation2d(469.11, 158.845);
+//         Pose2d robotPos = drivetrain.getState().Pose;
+
+//         // 1. Calculate the angle from the robot to the hub on the field
+//         // Math.atan2(y, x) returns the angle in radians
+//         double angleToHubRad = Math.atan2(
+//             redHub.getY() - robotPos.getY(),
+//             redHub.getX() - robotPos.getX()
+//         );
+
+//         // 2. Convert to degrees and subtract robot rotation to get "Robot Relative" target
+//         double fieldTargetDeg = Math.toDegrees(angleToHubRad);
+//         double robotRelativeTarget = fieldTargetDeg + robotPos.getRotation().getDegrees();
+
+//         // 3. THE CONTINUOUS FIX: Calculate the shortest distance to the target
+//         // This prevents the turret from spinning 350 degrees to reach -10 from +10.
+//         double error = MathUtil.inputModulus(robotRelativeTarget - currentAngle, -180, 180);
+
+//         // 4. Apply Tolerance and Motor Output
+//         if (Math.abs(error) < TOLERANCE_DEG) {
+//             turretMotor.set(0); // Within 2 degrees, stop moving
+//         } else {
+//             // Maintains your existing speed scaling
+//             turretMotor.set(error * KP); 
+//         }
+
+//         // Telemetry
+//         SmartDashboard.putNumber("Turret Angle (deg)", currentAngle);
+//         SmartDashboard.putNumber("Turret Target (deg)", robotRelativeTarget);
+//         SmartDashboard.putNumber("Turret Error (deg)", error);
+//         SmartDashboard.putBoolean("Turret At Target", Math.abs(error) < TOLERANCE_DEG);
+//     }
+// }
     
     // public boolean atTarget() {
     //     return pidController.atSetpoint();

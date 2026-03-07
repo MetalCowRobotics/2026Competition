@@ -18,7 +18,6 @@ public class Robot extends TimedRobot {
     public static RobotContainer m_robotContainer;
 
       private final boolean kUseLimelight = false;
-      private Pivot pivot;
 
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
@@ -27,7 +26,6 @@ public class Robot extends TimedRobot {
 
     public Robot() {
         m_robotContainer = new RobotContainer();
-        pivot = new Pivot();
 
     }
 

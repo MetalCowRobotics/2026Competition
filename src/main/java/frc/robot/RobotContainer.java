@@ -47,7 +47,6 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final Vision vision;
-    private final Pivot pivot;
     private final Turret turret;
     private final Shooter shooter;
     private final Intake intake;
@@ -65,7 +64,6 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-        pivot = new Pivot();
         turret = new Turret(drivetrain);
         shooter = new Shooter();
         intake = new Intake();
