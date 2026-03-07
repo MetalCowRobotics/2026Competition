@@ -28,8 +28,8 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond); // 1/2 of a rotation per second
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)/5; // kSpeedAt12Volts desired top speed
+    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond)/5; // 1/2 of a rotation per second
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()

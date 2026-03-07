@@ -113,13 +113,13 @@ public class Turret extends SubsystemBase{
         Math.pow((redHub.getY() - robotPos.getY()),2))     )      
         );
 
-        targetAngle = robotPos.getRotation().getDegrees() - targetAngle;
+        targetAngle = targetAngle - robotPos.getRotation().getDegrees();
 
 
 
 
 
-        // turretMotor.set((targetAngle - currentAngle) * 0.0005);
+        turretMotor.set((targetAngle - currentAngle) * 0.001);
 
         SmartDashboard.putNumber("Turret Angle (deg)", currentAngle);
         SmartDashboard.putNumber("Turret Target (deg)", targetAngle);
