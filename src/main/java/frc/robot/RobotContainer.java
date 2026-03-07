@@ -135,19 +135,6 @@ public class RobotContainer {
 
 
         // playing with controller feedback for set target positions (Turret)
-        operatorController.a().whileTrue(
-            Commands.runOnce(
-                () -> turret.setTargetPosition(0),
-                turret
-            )
-        );
-
-        operatorController.y().whileTrue(
-            Commands.runOnce(
-                () -> turret.setTargetPosition(360),
-                turret
-            )
-        );
 
         operatorController.b().toggleOnTrue(shooter.shoot());
     
