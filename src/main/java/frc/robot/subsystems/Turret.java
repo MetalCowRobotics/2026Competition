@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.*;
 
 public class Turret extends SubsystemBase {
 
@@ -19,7 +20,7 @@ public class Turret extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
 
     // Control Constants
-    private final double KP = 0.004; 
+    private final double KP = 0.006; 
     private final double GEAR_RATIO = 11.0;
     private final double PIVOT_SCALING_FACTOR = 39.1; // Your custom multiplier
     
@@ -77,86 +78,76 @@ public void zeroSensors() {
     pivotMotor.setPosition(0.0);
 }
    
-   @Override
+@Override
 public void periodic() {
-    // --- 1. POSITION & DISTANCE (Meters) ---
+   // --- 1. GET ROBOT STATE ---
     Pose2d robotPos = drivetrain.getState().Pose;
-    double distanceToHubMeters = robotPos.getTranslation().getDistance(redHubMeters);
     
-    // --- 2. PROJECTILE MATH (Meters) ---
-    double v = Units.feetToMeters(SHOOTER_EXIT_VELOCITY_FT_PER_S); // ~10.668 m/s
-    double g = 9.80665; // Gravity m/s^2
-    double h = Units.feetToMeters(TARGET_HEIGHT_DIFF_FT); // ~1.524 m
+    // Get robot-relative speeds and transform them to field-relative
+    var robotRelativeSpeeds = drivetrain.getState().Speeds;
+    var fieldRelativeSpeeds = edu.wpi.first.math.kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
+        robotRelativeSpeeds, 
+        robotPos.getRotation()
+    );
+
+    double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
+    double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
+
+    // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
+    // Initial distance estimate to get a baseline flight time
+    double distToHub = robotPos.getTranslation().getDistance(redHubMeters);
+    double v = Units.feetToMeters(SHOOTER_EXIT_VELOCITY_FT_PER_S);
+    double flightTime = distToHub / v; // Rough estimate of time-to-target
+
+    // Calculate lead position: Target = Current - (Velocity * Time)
+    Translation2d leadingTarget = new Translation2d(
+        redHubMeters.getX() - (robotVx * flightTime),
+        redHubMeters.getY() - (robotVy * flightTime)
+    );
+
+    // --- 3. PROJECTILE MATH (Using the Leading Target) ---
+    double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);
+    double g = 9.80665;
+    double h = Units.feetToMeters(TARGET_HEIGHT_DIFF_FT);
 
     double v2 = v * v;
     double v4 = v2 * v2;
-    
-    // Check if the target is physically reachable with current velocity
-    double discriminant = v4 - g * (g * (distanceToHubMeters * distanceToHubMeters) + 2 * h * v2);
+    double discriminant = v4 - g * (g * (distanceToLead * distanceToLead) + 2 * h * v2);
 
     double targetPitchDegrees;
-    if (discriminant >= 0 && distanceToHubMeters > 0) {
-        double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToHubMeters));
+    if (discriminant >= 0 && distanceToLead > 0) {
+        double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
         targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
     } else {
-        targetPitchDegrees = 45.0; // Fail-safe for out of range
+        targetPitchDegrees = 45.0; 
     }
 
-    // --- 3. TURRET CONTROL ---
+    // --- 4. TURRET CONTROL (Azimuth) ---
     double turretRotations = turretMotor.getPosition().getValueAsDouble();
     double currentTurretAngle = (turretRotations * 360.0) % 360.0;
     if (currentTurretAngle < 0) currentTurretAngle += 360.0;
 
-    double angleToHubRad = Math.atan2(
-        redHubMeters.getY() - robotPos.getY(), 
-        redHubMeters.getX() - robotPos.getX()
+    // Calculate angle to the LEADING target
+    double angleToLeadRad = Math.atan2(
+        leadingTarget.getY() - robotPos.getY(), 
+        leadingTarget.getX() - robotPos.getX()
     );
     
-    double turretTargetDeg = Units.radiansToDegrees(angleToHubRad) - robotPos.getRotation().getDegrees();
+    double turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
     double turretError = MathUtil.inputModulus(-turretTargetDeg - currentTurretAngle, -180, 180);
     
-    double turretOutput = (Math.abs(turretError) < 1.0) ? 0 : turretError * KP;
-    turretMotor.set(turretOutput);
+    turretMotor.set(Math.abs(turretError) < 1.0 ? 0 : turretError * KP);
 
-    // --- 4. PIVOT CONTROL (Coaxial Fix) ---
-    // Calculate rotations needed for the shooter pitch itself
+    // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
     double pitchOnlyRotations = (targetPitchDegrees * PIVOT_SCALING_FACTOR) / 360.0;
-    
-    // COAXIAL COMPENSATION:
-    // We add the turret's rotation to the pivot's target to cancel the mechanical link.
     double combinedPivotTargetRotations = pitchOnlyRotations + turretRotations; 
+    double pivotError = combinedPivotTargetRotations - pivotMotor.getPosition().getValueAsDouble();
 
-    double currentPivotRotations = pivotMotor.getPosition().getValueAsDouble();
-    double pivotErrorRotations = combinedPivotTargetRotations - currentPivotRotations;
+    pivotMotor.set(Math.abs(pivotError) < 0.01 ? 0 : pivotError * (KP * 250));
 
-    double pivotOutput = (Math.abs(pivotErrorRotations) < 0.01) ? 0 : pivotErrorRotations * (KP * 360);
-    pivotMotor.set(pivotOutput);
-
-    // --- 5. EXTENSIVE TELEMETRY ---
-    
-    // Physics & Distance
-    SmartDashboard.putNumber("Turret/Dist_Meters", distanceToHubMeters);
-    SmartDashboard.putNumber("Turret/Discriminant", discriminant);
+    // --- 6. TELEMETRY ---
+    SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees);
-    
-    // Turret Raw & Calculated
-    SmartDashboard.putNumber("Turret/Raw_Rotations", turretRotations);
-    SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
-    SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
-    SmartDashboard.putNumber("Turret/Error_Deg", turretError);
-    SmartDashboard.putNumber("Turret/Motor_Output", turretOutput);
-    
-    // Pivot Raw & Calculated
-    SmartDashboard.putNumber("Pivot/Raw_Rotations", currentPivotRotations);
-    SmartDashboard.putNumber("Pivot/Desired_Pitch_Rotations", pitchOnlyRotations);
-    SmartDashboard.putNumber("Pivot/Combined_Target_Rotations", combinedPivotTargetRotations);
-    SmartDashboard.putNumber("Pivot/Error_Rotations", pivotErrorRotations);
-    SmartDashboard.putNumber("Pivot/Motor_Output", pivotOutput);
-    
-    // Robot Pose
-    SmartDashboard.putNumber("Robot/X_Meters", robotPos.getX());
-    SmartDashboard.putNumber("Robot/Y_Meters", robotPos.getY());
-    SmartDashboard.putNumber("Robot/Heading_Deg", robotPos.getRotation().getDegrees());
 }
 }
 
