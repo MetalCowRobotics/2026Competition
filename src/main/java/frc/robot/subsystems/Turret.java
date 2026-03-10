@@ -53,7 +53,7 @@ public class Turret extends SubsystemBase {
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        pivotConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
@@ -62,8 +62,20 @@ public class Turret extends SubsystemBase {
 
         turretMotor.getConfigurator().apply(turretConfig);
         pivotMotor.getConfigurator().apply(pivotConfig);
-    }
+//         // Resets the internal encoder positions to 0.0 rotations
+turretMotor.setPosition(0.0);
+pivotMotor.setPosition(0.0);
 
+    }
+    
+/**
+ * Manually resets encoder positions to zero. 
+ * Use this when the turret and pivot are physically at their "home" positions.
+ */
+public void zeroSensors() {
+    turretMotor.setPosition(0.0);
+    pivotMotor.setPosition(0.0);
+}
    
    @Override
 public void periodic() {
@@ -85,7 +97,7 @@ public void periodic() {
     double targetPitchDegrees;
     if (discriminant >= 0 && distanceToHubMeters > 0) {
         double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToHubMeters));
-        targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 0.0, 45.0);
+        targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
     } else {
         targetPitchDegrees = 45.0; // Fail-safe for out of range
     }
@@ -112,7 +124,7 @@ public void periodic() {
     
     // COAXIAL COMPENSATION:
     // We add the turret's rotation to the pivot's target to cancel the mechanical link.
-    double combinedPivotTargetRotations = pitchOnlyRotations - turretRotations; 
+    double combinedPivotTargetRotations = pitchOnlyRotations + turretRotations; 
 
     double currentPivotRotations = pivotMotor.getPosition().getValueAsDouble();
     double pivotErrorRotations = combinedPivotTargetRotations - currentPivotRotations;
