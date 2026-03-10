@@ -6,9 +6,9 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -107,8 +107,56 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putNumber("Distance (Ft)", d);
         SmartDashboard.putNumber("Calculated Pitch (Deg)", targetPivotPitchDeg);
         SmartDashboard.putNumber("Turret Angle (Deg)", currentTurretAngle);
+
+        /*double dx = redHubMeters.getX() - robotPosMeters.getX();
+double dy = redHubMeters.getY() - robotPosMeters.getY();
+
+double distance = Math.hypot(dx, dy);
+
+double angleToHubRad = Math.atan2(dy, dx);
+double targetFieldAngleDeg = Math.toDegrees(angleToHubRad);
+
+double robotHeadingDeg = robotPosMeters.getRotation().getDegrees();
+
+// Flight time 
+double flightTime =
+    distance /
+    (SHOOTER_EXIT_VELOCITY_METERS_PER_S * Math.cos(angleRad));
+
+// Robot velocity 
+var speeds = drivetrain.getState().Speeds;
+
+double robotSpeed =
+    Math.hypot(speeds.vxMetersPerSecond,
+               speeds.vyMetersPerSecond);
+
+double robotVelocityAngle =
+    Math.atan2(speeds.vyMetersPerSecond,
+               speeds.vxMetersPerSecond);
+
+// Sideways velocity
+double sidewaysVelocity =
+    robotSpeed *
+    Math.sin(robotVelocityAngle - angleToHubRad);
+
+// Lead compensation
+double yawLeadDeg =
+    Math.toDegrees(
+        Math.atan2(sidewaysVelocity * flightTime, distance)
+    );
+
+// Final turret target
+double robotRelativeTarget =
+    targetFieldAngleDeg
+    - robotHeadingDeg
+    + yawLeadDeg; */
     }
 }
+
+
+
+
+
 // package frc.robot.subsystems;
 
 // import com.ctre.phoenix6.configs.TalonFXConfiguration;
