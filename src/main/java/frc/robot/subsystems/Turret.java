@@ -21,14 +21,16 @@ public class Turret extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
 
     // Control Constants
-    private final double KP = 0.006; 
-    private final double GEAR_RATIO = 11.0;
-    private final double PIVOT_SCALING_FACTOR = 39.111; // Your custom multiplier
+    private final double KP1 = 0.09; 
+     private final double KP2 = 0.006; 
+    private final double TURRET_GEAR_RATIO = 11.0;
+    private final double PIVOT_GEAR_RATIO = -50.28571428571429; // Your custom multiplier
+    
     
     // Physics Constants (Standardized to Feet for the formula)
-    private final double TARGET_HEIGHT_DIFF_FT = 5.0;
-    private final double SHOOTER_EXIT_VELOCITY_FT_PER_S = 35;
-    private final double GRAVITY_FT_PER_S2 = 32.17;
+    private final double TARGET_HEIGHT_DIFF = 1.27;
+    private final double SHOOTER_SPEED = 10.77;
+    private final double GRAVITY = 9.81;
 
     private final SlewRateLimiter pivotRamp = new SlewRateLimiter(0.5);
 
@@ -48,14 +50,14 @@ public class Turret extends SubsystemBase {
 
     private void configureMotors() {
         TalonFXConfiguration turretConfig = new TalonFXConfiguration();
-        turretConfig.Feedback.SensorToMechanismRatio = GEAR_RATIO; 
+        turretConfig.Feedback.SensorToMechanismRatio = TURRET_GEAR_RATIO; 
         turretConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        turretConfig.CurrentLimits.StatorCurrentLimit = 20;
+        turretConfig.CurrentLimits.StatorCurrentLimit = 25;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
-        pivotConfig.Feedback.SensorToMechanismRatio = GEAR_RATIO;
+        pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
@@ -65,11 +67,13 @@ public class Turret extends SubsystemBase {
         // Software Limit Switches for Pivot (Safety logic)
         // Converts 0-45 degrees (scaled) into motor rotations
 
-        turretMotor.getConfigurator().apply(turretConfig);
-        pivotMotor.getConfigurator().apply(pivotConfig);
         //         // Resets the internal encoder positions to 0.0 rotations
         //turretMotor.setPosition(0.0);
-        pivotMotor.setPosition(0.0);
+       zeroSensors();
+      
+      
+        turretMotor.getConfigurator().apply(turretConfig);
+        pivotMotor.getConfigurator().apply(pivotConfig);
 
     }
     
@@ -78,8 +82,8 @@ public class Turret extends SubsystemBase {
  * Use this when the turret and pivot are physically at their "home" positions.
  */
 public void zeroSensors() {
-    //turretMotor.setPosition(0.0);
-    pivotMotor.setPosition(0.0);
+
+    pivotMotor.setPosition(turretMotor.getPosition().getValueAsDouble());
 }
    
 @Override
@@ -100,7 +104,7 @@ public void periodic() {
     // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
     // Initial distance estimate to get a baseline flight time
     double distToHub = robotPos.getTranslation().getDistance(redHubMeters);
-    double v = Units.feetToMeters(SHOOTER_EXIT_VELOCITY_FT_PER_S);
+    double v = SHOOTER_SPEED;
     double flightTime = distToHub / v; // Rough estimate of time-to-target
 
     // Calculate lead position: Target = Current - (Velocity * Time)
@@ -111,8 +115,8 @@ public void periodic() {
 
     // --- 3. PROJECTILE MATH (Using the Leading Target) ---
     double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);
-    double g = 9.80665;
-    double h = Units.feetToMeters(TARGET_HEIGHT_DIFF_FT);
+    double g = GRAVITY;
+    double h = TARGET_HEIGHT_DIFF;
 
     double v2 = v * v;
     double v4 = v2 * v2;
@@ -133,9 +137,9 @@ public void periodic() {
     );
     
     double turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
-    double turretError = MathUtil.inputModulus(-turretTargetDeg - currentTurretAngle, -180, 180);
+    double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
-    turretMotor.set(Math.abs(turretError) < 1.0 ? 0 : turretError * KP);
+    turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
 
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
     
@@ -144,22 +148,26 @@ public void periodic() {
         double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
         targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
 
+    double pitchOnlyDeg = (targetPitchDegrees);
+    //double combinedPivotTargetRotations = -pitchOnlyDeg; 
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
     //double combinedPivotTargetRotations = -pitchOnlyRotations; 
-    double combinedPivotTargetRotations = -pitchOnlyRotations - turretTargetDeg/360; 
-    double pivotError = combinedPivotTargetRotations - pivotMotor.getPosition().getValueAsDouble();
+    double combinedPivotTargetDeg = -pitchOnlyDeg - (turretMotor.getPosition().getValueAsDouble()*360); 
+    double pivotError = (pivotMotor.getPosition().getValueAsDouble()*360)+(combinedPivotTargetDeg);
 
-    double pivotOutput = pivotError * (KP * 150);
+    double pivotOutput = pivotError * (KP2);
 
-    pivotOutput = pivotRamp.calculate(pivotOutput);
+   
 
-    pivotMotor.set(Math.abs(pivotError) < 0.01 ? 0 : pivotOutput);
+    pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
+    //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
+    SmartDashboard.putNumber("Turret/pivoterror", pivotError);
     SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
-    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetRotations * 360);
+    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", -combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
     SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
     
