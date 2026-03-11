@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 
 public class Turret extends SubsystemBase {
 
@@ -22,12 +23,14 @@ public class Turret extends SubsystemBase {
     // Control Constants
     private final double KP = 0.006; 
     private final double GEAR_RATIO = 11.0;
-    private final double PIVOT_SCALING_FACTOR = 39.1; // Your custom multiplier
+    private final double PIVOT_SCALING_FACTOR = 39.111; // Your custom multiplier
     
     // Physics Constants (Standardized to Feet for the formula)
     private final double TARGET_HEIGHT_DIFF_FT = 5.0;
-    private final double SHOOTER_EXIT_VELOCITY_FT_PER_S = 35.0;
+    private final double SHOOTER_EXIT_VELOCITY_FT_PER_S = 35;
     private final double GRAVITY_FT_PER_S2 = 32.17;
+
+    private final SlewRateLimiter pivotRamp = new SlewRateLimiter(0.5);
 
     // Field Constants (Converted to Meters for WPILib compatibility)
     private final Translation2d redHubMeters = new Translation2d(
@@ -47,7 +50,7 @@ public class Turret extends SubsystemBase {
         TalonFXConfiguration turretConfig = new TalonFXConfiguration();
         turretConfig.Feedback.SensorToMechanismRatio = GEAR_RATIO; 
         turretConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        turretConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 20;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
@@ -57,15 +60,16 @@ public class Turret extends SubsystemBase {
         pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        pivotConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
 
         // Software Limit Switches for Pivot (Safety logic)
         // Converts 0-45 degrees (scaled) into motor rotations
 
         turretMotor.getConfigurator().apply(turretConfig);
         pivotMotor.getConfigurator().apply(pivotConfig);
-//         // Resets the internal encoder positions to 0.0 rotations
-turretMotor.setPosition(0.0);
-pivotMotor.setPosition(0.0);
+        //         // Resets the internal encoder positions to 0.0 rotations
+        //turretMotor.setPosition(0.0);
+        pivotMotor.setPosition(0.0);
 
     }
     
@@ -74,7 +78,7 @@ pivotMotor.setPosition(0.0);
  * Use this when the turret and pivot are physically at their "home" positions.
  */
 public void zeroSensors() {
-    turretMotor.setPosition(0.0);
+    //turretMotor.setPosition(0.0);
     pivotMotor.setPosition(0.0);
 }
    
@@ -114,13 +118,8 @@ public void periodic() {
     double v4 = v2 * v2;
     double discriminant = v4 - g * (g * (distanceToLead * distanceToLead) + 2 * h * v2);
 
-    double targetPitchDegrees;
-    if (discriminant >= 0 && distanceToLead > 0) {
-        double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
-        targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
-    } else {
-        targetPitchDegrees = 45.0; 
-    }
+   
+ 
 
     // --- 4. TURRET CONTROL (Azimuth) ---
     double turretRotations = turretMotor.getPosition().getValueAsDouble();
@@ -139,16 +138,34 @@ public void periodic() {
     turretMotor.set(Math.abs(turretError) < 1.0 ? 0 : turretError * KP);
 
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
-    double pitchOnlyRotations = (targetPitchDegrees * PIVOT_SCALING_FACTOR) / 360.0;
-    double combinedPivotTargetRotations = pitchOnlyRotations + turretRotations; 
+    
+    double targetPitchDegrees;
+    
+        double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
+        targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
+
+    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
+    //double combinedPivotTargetRotations = -pitchOnlyRotations; 
+    double combinedPivotTargetRotations = -pitchOnlyRotations - turretTargetDeg/360; 
     double pivotError = combinedPivotTargetRotations - pivotMotor.getPosition().getValueAsDouble();
 
-    pivotMotor.set(Math.abs(pivotError) < 0.01 ? 0 : pivotError * (KP * 250));
+    double pivotOutput = pivotError * (KP * 150);
+
+    pivotOutput = pivotRamp.calculate(pivotOutput);
+
+    pivotMotor.set(Math.abs(pivotError) < 0.01 ? 0 : pivotOutput);
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
-    SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees);
+    SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
+    SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
+    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetRotations * 360);
+    SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
+    SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
+    
 }
+
+
 }
 
 
