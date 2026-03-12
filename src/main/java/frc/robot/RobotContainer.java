@@ -102,7 +102,8 @@ public class RobotContainer {
             )
         );
         
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        joystick.a().whileTrue(spindexer.runSpindexerCommand()
+               .alongWith(feeder.runFeederCommand()));
         
         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(0.5).withVelocityY(0))

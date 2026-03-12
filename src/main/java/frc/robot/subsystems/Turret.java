@@ -151,8 +151,8 @@ public void periodic() {
     double pitchOnlyDeg = (targetPitchDegrees);
     //double combinedPivotTargetRotations = -pitchOnlyDeg; 
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
-    double combinedPivotTargetDeg = -pitchOnlyDeg; 
-    // double combinedPivotTargetDeg = pitchOnlyDeg + ((turretMotor.getPosition().getValueAsDouble()/11*PIVOT_GEAR_RATIO)/360); 
+    //double combinedPivotTargetDeg = -pitchOnlyDeg; 
+    double combinedPivotTargetDeg = pitchOnlyDeg + ((turretRotations/TURRET_GEAR_RATIO)/360); 
     double pivotError = (pivotMotor.getPosition().getValueAsDouble()*360)-(combinedPivotTargetDeg);
 
     double pivotOutput = pivotError * (KP2);
