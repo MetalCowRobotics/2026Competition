@@ -59,7 +59,7 @@ public class Turret extends SubsystemBase {
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        pivotConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         pivotConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
@@ -83,7 +83,7 @@ public class Turret extends SubsystemBase {
  */
 public void zeroSensors() {
 
-    pivotMotor.setPosition(turretMotor.getPosition().getValueAsDouble());
+    pivotMotor.setPosition(0);
 }
    
 @Override
@@ -151,9 +151,9 @@ public void periodic() {
     double pitchOnlyDeg = (targetPitchDegrees);
     //double combinedPivotTargetRotations = -pitchOnlyDeg; 
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
-    //double combinedPivotTargetRotations = -pitchOnlyRotations; 
-    double combinedPivotTargetDeg = -pitchOnlyDeg - (turretMotor.getPosition().getValueAsDouble()*360); 
-    double pivotError = (pivotMotor.getPosition().getValueAsDouble()*360)+(combinedPivotTargetDeg);
+    double combinedPivotTargetDeg = -pitchOnlyDeg; 
+    // double combinedPivotTargetDeg = pitchOnlyDeg + ((turretMotor.getPosition().getValueAsDouble()/11*PIVOT_GEAR_RATIO)/360); 
+    double pivotError = (pivotMotor.getPosition().getValueAsDouble()*360)-(combinedPivotTargetDeg);
 
     double pivotOutput = pivotError * (KP2);
 
