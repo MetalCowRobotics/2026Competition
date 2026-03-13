@@ -23,6 +23,8 @@ public class Turret extends SubsystemBase {
     private final TalonFX turretMotor;
     private final TalonFX pivotMotor;
     private final CommandSwerveDrivetrain drivetrain;
+    double pivotOffset = 0;
+    double turretTargetDeg = 0;
 
     // Control Constants
     private final double KP1 = 0.09; 
@@ -37,6 +39,7 @@ public class Turret extends SubsystemBase {
     private final double TARGET_HEIGHT_DIFF = 1.27;
     private final double SHOOTER_SPEED = 10.77;
     private final double GRAVITY = 9.81;
+    
 
     private final SlewRateLimiter pivotRamp = new SlewRateLimiter(0.5);
     
@@ -83,6 +86,8 @@ public class Turret extends SubsystemBase {
       
         turretMotor.getConfigurator().apply(turretConfig);
         pivotMotor.getConfigurator().apply(pivotConfig);
+
+        pivotOffset = turretTargetDeg/360;
 
     }
     
@@ -145,7 +150,7 @@ public void periodic() {
         leadingTarget.getX() - robotPos.getX()
     );
     
-    double turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
+    this.turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
     turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
@@ -175,6 +180,7 @@ public void periodic() {
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
+    SmartDashboard.putNumber("Turret/Testing_Offset", pivotOffset);
     SmartDashboard.putNumber("Turret/pivoterror", pivotError);
     SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
