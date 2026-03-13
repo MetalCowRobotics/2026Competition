@@ -152,10 +152,11 @@ public void periodic() {
     //double combinedPivotTargetRotations = -pitchOnlyDeg; 
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
     //double combinedPivotTargetDeg = -pitchOnlyDeg; 
-    double combinedPivotTargetDeg = pitchOnlyDeg + ((turretRotations/TURRET_GEAR_RATIO)/360); 
-    double pivotError = (pivotMotor.getPosition().getValueAsDouble()*360)-(combinedPivotTargetDeg);
+    //double combinedPivotTargetDeg = pitchOnlyRotations - ((turretRotations/TURRET_GEAR_RATIO))/2; 
+    double combinedPivotTargetDeg =  -turretRotations; 
+    double pivotError = combinedPivotTargetDeg-(pivotMotor.getPosition().getValueAsDouble()*360);
 
-    double pivotOutput = pivotError * (KP2);
+    double pivotOutput = -pivotError * (KP2);
 
    
 
@@ -167,9 +168,10 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/pivoterror", pivotError);
     SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
-    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", -combinedPivotTargetDeg);
+    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
     SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
+        SmartDashboard.putNumber("Turret/Pivot_Output", pivotOutput);
     
 }
 
