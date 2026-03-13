@@ -28,7 +28,7 @@ public class Turret extends SubsystemBase {
     private final double KP1 = 0.09; 
      private final double KP2 = 0.006; 
     private final double TURRET_GEAR_RATIO = 11.0;
-    private final double PIVOT_GEAR_RATIO = -50.28571428571429; // Your custom multiplier
+    private final double PIVOT_GEAR_RATIO = 50.28571428571429; // Your custom multiplier
 
     PIDController pid = new PIDController(KP2, 0,0);
     
@@ -39,6 +39,8 @@ public class Turret extends SubsystemBase {
     private final double GRAVITY = 9.81;
 
     private final SlewRateLimiter pivotRamp = new SlewRateLimiter(0.5);
+    
+    PositionVoltage request = new PositionVoltage(0);
 
     // Field Constants (Converted to Meters for WPILib compatibility)
     private final Translation2d redHubMeters = new Translation2d(
@@ -69,6 +71,7 @@ public class Turret extends SubsystemBase {
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         pivotConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        pivotConfig.Slot0.kP = 35;
 
         // Software Limit Switches for Pivot (Safety logic)
         // Converts 0-45 degrees (scaled) into motor rotations
@@ -88,7 +91,7 @@ public class Turret extends SubsystemBase {
  * Use this when the turret and pivot are physically at their "home" positions.
  */
 public void zeroSensors() {
-
+    turretMotor.setPosition(0);
     pivotMotor.setPosition(0);
 }
    
@@ -159,25 +162,21 @@ public void periodic() {
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
     //double combinedPivotTargetDeg = -pitchOnlyDeg; 
     //double combinedPivotTargetDeg = pitchOnlyRotations - ((turretRotations/TURRET_GEAR_RATIO))/2; 
-    double combinedPivotTargetDeg =  -turretRotations; 
+    double combinedPivotTargetDeg =  turretRotations; 
     double pivotError = combinedPivotTargetDeg-(pivotMotor.getPosition().getValueAsDouble()*360);
 
     double pivotOutput = -pivotError * (KP2);
-
-   
-
     //pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
     // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
 
-    PositionVoltage request = new PositionVoltage(0);
 
-    pivotMotor.setControl(request.withPosition(combinedPivotTargetDeg));
+    pivotMotor.setControl(request.withPosition(turretRotations/4));
     //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
     SmartDashboard.putNumber("Turret/pivoterror", pivotError);
-    SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
+    SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
     SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
