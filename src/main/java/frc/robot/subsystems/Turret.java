@@ -66,6 +66,7 @@ public class Turret extends SubsystemBase {
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 25;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        turretConfig.Slot0.kP = 30;
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
@@ -155,6 +156,7 @@ public void periodic() {
     
     turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
 
+    // turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
     
     double targetPitchDegrees;
@@ -175,17 +177,17 @@ public void periodic() {
     // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
 
 
-    pivotMotor.setControl(request.withPosition(turretRotations/4));
-    //Math.abs(pivotError) < 0.01 ? 0 :
+    pivotMotor.setControl(request.withPosition(turretRotations*0.2147));
+    // //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
     SmartDashboard.putNumber("Turret/Testing_Offset", pivotOffset);
     SmartDashboard.putNumber("Turret/pivoterror", pivotError);
-    SmartDashboard.putNumber("Turret/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
     SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
-    SmartDashboard.putNumber("Turret/Current_Angle_Deg", currentTurretAngle);
+    SmartDashboard.putNumber("Turret/Current_Turret_Position", turretRotations);
     SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
         SmartDashboard.putNumber("Turret/Pivot_Output", pivotOutput);
     
