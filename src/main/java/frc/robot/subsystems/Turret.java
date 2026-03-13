@@ -177,13 +177,13 @@ public void periodic() {
     // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
 
 
-    pivotMotor.setControl(request.withPosition(turretRotations*0.2147));
+    pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
     // //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
     SmartDashboard.putNumber("Turret/Testing_Offset", pivotOffset);
-    SmartDashboard.putNumber("Turret/pivoterror", pivotError);
+    SmartDashboard.putNumber("Turret/Pivot_Target_Rotations", pitchOnlyRotations);
     SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
     SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
