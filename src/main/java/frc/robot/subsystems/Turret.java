@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -13,6 +14,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.controller.PIDController;
+
+
 
 public class Turret extends SubsystemBase {
 
@@ -25,6 +29,8 @@ public class Turret extends SubsystemBase {
      private final double KP2 = 0.006; 
     private final double TURRET_GEAR_RATIO = 11.0;
     private final double PIVOT_GEAR_RATIO = -50.28571428571429; // Your custom multiplier
+
+    PIDController pid = new PIDController(KP2, 0,0);
     
     
     // Physics Constants (Standardized to Feet for the formula)
@@ -160,7 +166,12 @@ public void periodic() {
 
    
 
-    pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
+    //pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
+    // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
+
+    PositionVoltage request = new PositionVoltage(0);
+
+    pivotMotor.setControl(request.withPosition(combinedPivotTargetDeg));
     //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
