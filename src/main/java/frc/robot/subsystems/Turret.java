@@ -66,10 +66,10 @@ public class Turret extends SubsystemBase {
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 25;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        turretConfig.Slot0.kP = 30;
+
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
-        pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
+        pivotConfig.Feedback.SensorToMechanismRatio = 52.66;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
@@ -106,17 +106,6 @@ public void periodic() {
    // --- 1. GET ROBOT STATE ---
     Pose2d robotPos = drivetrain.getState().Pose;
     
-    // Get robot-relative speeds and transform them to field-relative
-   Translation2d robotToTurretOffset = new Translation2d(
-        Units.inchesToMeters(-6.0), // X offset (Positive is forward of center)
-        Units.inchesToMeters(0.0)   // Y offset (Positive is left of center)
-    );
-    
-    // Rotate the offset by the robot's current heading to make it field-relative
-    Translation2d fieldRelativeOffset = robotToTurretOffset.rotateBy(robotPos.getRotation());
-    
-    // Add the field-relative offset to the robot's center position to get the turret's true field position
-    Translation2d turretFieldPos = robotPos.getTranslation().plus(fieldRelativeOffset);
 
     // Get robot-relative speeds and transform them to field-relative
     var robotRelativeSpeeds = drivetrain.getState().Speeds;
@@ -131,7 +120,7 @@ public void periodic() {
 
     // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
     // Initial distance estimate to get a baseline flight time
-    double distToHub = turretFieldPos.getDistance(redHubMeters);
+    double distToHub = robotPos.getTranslation().getDistance(redHubMeters);
     double v = SHOOTER_SPEED;
     double flightTime = distToHub / v; // Rough estimate of time-to-target
 
@@ -142,7 +131,7 @@ public void periodic() {
     );
 
     // --- 3. PROJECTILE MATH (Using the Leading Target) ---
-    double distanceToLead = turretFieldPos.getDistance(leadingTarget);
+    double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);
     double g = GRAVITY;
     double h = TARGET_HEIGHT_DIFF;
 
@@ -174,23 +163,24 @@ public void periodic() {
     
     double targetPitchDegrees;
     
-        double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
-        targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
+    double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
+    targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
 
-    double pitchOnlyDeg = (targetPitchDegrees);
     //double combinedPivotTargetRotations = -pitchOnlyDeg; 
-    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
+    // double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
+    double pitchOnlyRotations = (targetPitchDegrees / 360.0 );
     //double combinedPivotTargetDeg = -pitchOnlyDeg; 
     //double combinedPivotTargetDeg = pitchOnlyRotations - ((turretRotations/TURRET_GEAR_RATIO))/2; 
     double combinedPivotTargetDeg =  turretRotations; 
-    double pivotError = combinedPivotTargetDeg-(pivotMotor.getPosition().getValueAsDouble()*360);
+    // double pivotError = combinedPivotTargetDeg-(pivotMotor.getPosition().getValueAsDouble()*360);
 
-    double pivotOutput = -pivotError * (KP2);
+    // double pivotOutput = -pivotError * (KP2);
     //pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
     // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
 
 
     pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
+    //pivotMotor.setControl(request.withPosition(pitchOnlyRotations));
     // //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
@@ -202,7 +192,6 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Turret_Position", turretRotations);
     SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
-        SmartDashboard.putNumber("Turret/Pivot_Output", pivotOutput);
     
 }
 
