@@ -165,22 +165,12 @@ public void periodic() {
     targetPitchDegrees = 42-targetPitchDegrees;
     targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
 
-    //double combinedPivotTargetRotations = -pitchOnlyDeg; 
+    //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
-    //double pitchOnlyRotations = (targetPitchDegrees / 360.0 );
-    //double combinedPivotTargetDeg = -pitchOnlyDeg; 
-    //double combinedPivotTargetDeg = pitchOnlyRotations - ((turretRotations/TURRET_GEAR_RATIO))/2; 
+
     double combinedPivotTargetDeg =  turretRotations; 
-    // double pivotError = combinedPivotTargetDeg-(pivotMotor.getPosition().getValueAsDouble()*360);
-
-    // double pivotOutput = -pivotError * (KP2);
-    //pivotMotor.set( Math.abs(pivotError) < 0.01 ? 0 :pivotOutput);
-    // pivotMotor.set(pid.calculate(pivotMotor.getPosition().getValueAsDouble(), combinedPivotTargetDeg));
-
-
+  
     pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
-    //pivotMotor.setControl(request.withPosition(pitchOnlyRotations));
-    // //Math.abs(pivotError) < 0.01 ? 0 :
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
