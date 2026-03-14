@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.2597590361445783,
-        "y": 1.7838915662650607
+        "x": 3.6574786324786324,
+        "y": 0.6757407407407425
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.76650334918056,
-        "y": 2.0817674219175184
+        "x": 3.052290450130739,
+        "y": 0.6906149843165119
       },
       "isLocked": false,
-      "linkedName": "R-Shoot"
+      "linkedName": "Center-B"
     },
     {
       "anchor": {
-        "x": 0.6315301204819277,
-        "y": 0.7676144578313244
+        "x": 7.663,
+        "y": 0.779
       },
       "prevControl": {
-        "x": 0.352398301689472,
-        "y": 0.6312090967363275
+        "x": 7.011167610044287,
+        "y": 0.7524929738434776
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "HP-Pick"
+      "linkedName": "Middle-Cen"
     }
   ],
   "rotationTargets": [],
@@ -41,14 +41,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 0.0
+    "velocity": 5.45,
+    "rotation": -90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 38.83627017867455
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }

@@ -88,6 +88,13 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
+        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.shoot()));
+        NamedCommands.registerCommand("Stop Shoot", shooter.shooterStop());
+        NamedCommands.registerCommand("Intake", intake.runIntakeCommand().alongWith(spindexer.runSpindexerCommand()));
+        NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
+        NamedCommands.registerCommand("Stop Spindexer", spindexer.stopSpindexerCommand());
+        NamedCommands.registerCommand("Stop Feed", feeder.stopFeederCommand());
+
         configureBindings();
     }
 
@@ -119,24 +126,17 @@ public class RobotContainer {
         // OPERATOR COMMANDS
 
 
-        // 1. INTAKE TOGGLE (Button X)
-        // Press once to start the intake, press again to stop.
-        operatorController.x().toggleOnTrue(
-            intake.runIntakeCommand()
-        );
+        operatorController.x().onTrue(intake.runIntakeCommand().alongWith(spindexer.runSpindexerCommand()));
+        //operatorController.x().onFalse(intake.endIntakeCommand().alongWith(spindexer.stopSpindexerCommand()));
 
-        // 2. SPINDEXER + FEEDER TOGGLE (Button Y)
-        // Press once to start BOTH, press again to stop BOTH.
-        operatorController.y().toggleOnTrue(
-           spindexer.runSpindexerCommand()
-               .alongWith(feeder.runFeederCommand())
-       );
+        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.shoot()));
+        //operatorController.y().onFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()));
+
+        operatorController.a().onTrue(intake.pivotAgitateCommand());
+        //operatorController.a().onFalse(intake.pivotStopAgitateCommand());
 
 
-        // playing with controller feedback for set target positions (Turret)
-
-        operatorController.b().toggleOnTrue(shooter.shoot());
-    
+        
     }
 
     public Command getAutonomousCommand() {

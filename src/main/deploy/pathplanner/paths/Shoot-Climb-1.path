@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.2597590361445783,
-        "y": 1.7838915662650607
+        "x": 3.9644819277108434,
+        "y": 7.214963855421687
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.76650334918056,
-        "y": 2.0817674219175184
+        "x": 2.7756067219711387,
+        "y": 5.931652719759377
       },
       "isLocked": false,
-      "linkedName": "R-Shoot"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.6315301204819277,
-        "y": 0.7676144578313244
+        "x": 2.434602409638554,
+        "y": 5.652301204819277
       },
       "prevControl": {
-        "x": 0.352398301689472,
-        "y": 0.6312090967363275
+        "x": 2.643921822361702,
+        "y": 5.8863183344796575
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "HP-Pick"
+      "linkedName": "Shoot-Climb"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -35.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 38.83627017867455
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
