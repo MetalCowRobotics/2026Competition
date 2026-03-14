@@ -109,8 +109,8 @@ public class RobotContainer {
             )
         );
         
-        joystick.a().whileTrue(spindexer.runSpindexerCommand()
-               .alongWith(feeder.runFeederCommand()));
+        //joystick.a().whileTrue(spindexer.runSpindexerCommand()
+              // .alongWith(feeder.runFeederCommand()));
         
         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(0.5).withVelocityY(0))
@@ -122,6 +122,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
+        joystick.a().toggleOnTrue(shooter.shoot());
 
         // OPERATOR COMMANDS
 

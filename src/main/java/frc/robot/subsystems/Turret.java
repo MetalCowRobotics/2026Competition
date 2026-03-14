@@ -23,8 +23,6 @@ public class Turret extends SubsystemBase {
     private final TalonFX turretMotor;
     private final TalonFX pivotMotor;
     private final CommandSwerveDrivetrain drivetrain;
-    double pivotOffset = 0;
-    double turretTargetDeg = 0;
 
     // Control Constants
     private final double KP1 = 0.09; 
@@ -66,10 +64,10 @@ public class Turret extends SubsystemBase {
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 25;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        turretConfig.Slot0.kP = 30;
+
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
-        pivotConfig.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
+        pivotConfig.Feedback.SensorToMechanismRatio = 52.66;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         pivotConfig.CurrentLimits.StatorCurrentLimit = 20;
@@ -88,7 +86,6 @@ public class Turret extends SubsystemBase {
         turretMotor.getConfigurator().apply(turretConfig);
         pivotMotor.getConfigurator().apply(pivotConfig);
 
-        pivotOffset = turretTargetDeg/360;
 
     }
     
@@ -105,13 +102,42 @@ public void zeroSensors() {
 public void periodic() {
     // --- 1. GET ROBOT STATE ---
     Pose2d robotPos = drivetrain.getState().Pose;
+<<<<<<< HEAD
 
     // --- 2. STATIC TARGETING ---
     // Simply find the straight-line distance to the target hub
+=======
+    
+
+    // Get robot-relative speeds and transform them to field-relative
+    var robotRelativeSpeeds = drivetrain.getState().Speeds;
+    var fieldRelativeSpeeds = edu.wpi.first.math.kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
+        robotRelativeSpeeds, 
+        robotPos.getRotation()
+    );
+
+    double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
+    double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
+
+
+    // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
+    // Initial distance estimate to get a baseline flight time
+>>>>>>> edcf3a3f37553d9fc389a209ad48ecbd28878bcd
     double distToHub = robotPos.getTranslation().getDistance(redHubMeters);
     double v = SHOOTER_SPEED;
 
+<<<<<<< HEAD
     // --- 3. PROJECTILE MATH (Static Target) ---
+=======
+    // Calculate lead position: Target = Current - (Velocity * Time)
+    Translation2d leadingTarget = new Translation2d(
+        redHubMeters.getX() - (robotVx * flightTime),
+        redHubMeters.getY() - (robotVy * flightTime)
+    );
+
+    // --- 3. PROJECTILE MATH (Using the Leading Target) ---
+    double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);
+>>>>>>> edcf3a3f37553d9fc389a209ad48ecbd28878bcd
     double g = GRAVITY;
     double h = TARGET_HEIGHT_DIFF;
 
@@ -136,14 +162,19 @@ public void periodic() {
         redHubMeters.getX() - robotPos.getX()
     );
     
+<<<<<<< HEAD
     this.turretTargetDeg = Units.radiansToDegrees(angleToTargetRad) - robotPos.getRotation().getDegrees();
+=======
+    double turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
+>>>>>>> edcf3a3f37553d9fc389a209ad48ecbd28878bcd
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
-    turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
+    //turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
 
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
     double targetPitchDegrees;
     
+<<<<<<< HEAD
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distToHub));
     targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
 
@@ -168,6 +199,29 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/Current_Turret_Position", turretRotations);
     SmartDashboard.putNumber("Turret/Target_Angle_Deg", turretTargetDeg);
     SmartDashboard.putNumber("Turret/Pivot_Output", pivotOutput);
+=======
+    double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
+    targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
+    targetPitchDegrees = 42-targetPitchDegrees;
+    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
+
+    //TODO: Play around with 4
+    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
+
+    double combinedPivotTargetDeg =  turretRotations; 
+  
+    //pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
+
+    // --- 6. TELEMETRY ---
+    SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
+    SmartDashboard.putNumber("Turret/Pivot_Target_Rotations", pitchOnlyRotations);
+    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
+    SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
+    SmartDashboard.putNumber("Turret/Current_Turret_Deg", currentTurretAngle);
+    SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
+    
+>>>>>>> edcf3a3f37553d9fc389a209ad48ecbd28878bcd
 }
 
 // @Override
