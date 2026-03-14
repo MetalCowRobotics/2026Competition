@@ -107,6 +107,18 @@ public void periodic() {
     Pose2d robotPos = drivetrain.getState().Pose;
     
     // Get robot-relative speeds and transform them to field-relative
+   Translation2d robotToTurretOffset = new Translation2d(
+        Units.inchesToMeters(-6.0), // X offset (Positive is forward of center)
+        Units.inchesToMeters(0.0)   // Y offset (Positive is left of center)
+    );
+    
+    // Rotate the offset by the robot's current heading to make it field-relative
+    Translation2d fieldRelativeOffset = robotToTurretOffset.rotateBy(robotPos.getRotation());
+    
+    // Add the field-relative offset to the robot's center position to get the turret's true field position
+    Translation2d turretFieldPos = robotPos.getTranslation().plus(fieldRelativeOffset);
+
+    // Get robot-relative speeds and transform them to field-relative
     var robotRelativeSpeeds = drivetrain.getState().Speeds;
     var fieldRelativeSpeeds = edu.wpi.first.math.kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
         robotRelativeSpeeds, 
@@ -116,9 +128,10 @@ public void periodic() {
     double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
     double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
 
+
     // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
     // Initial distance estimate to get a baseline flight time
-    double distToHub = robotPos.getTranslation().getDistance(redHubMeters);
+    double distToHub = turretFieldPos.getDistance(redHubMeters);
     double v = SHOOTER_SPEED;
     double flightTime = distToHub / v; // Rough estimate of time-to-target
 
@@ -129,7 +142,7 @@ public void periodic() {
     );
 
     // --- 3. PROJECTILE MATH (Using the Leading Target) ---
-    double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);
+    double distanceToLead = turretFieldPos.getDistance(leadingTarget);
     double g = GRAVITY;
     double h = TARGET_HEIGHT_DIFF;
 
