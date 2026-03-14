@@ -153,7 +153,7 @@ public void periodic() {
     double turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
-    turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
+    //turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
 
     // turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
@@ -170,7 +170,7 @@ public void periodic() {
 
     double combinedPivotTargetDeg =  turretRotations; 
   
-    pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
+    //pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
 
     // --- 6. TELEMETRY ---
     SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);

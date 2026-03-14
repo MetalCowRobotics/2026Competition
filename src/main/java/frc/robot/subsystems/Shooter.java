@@ -139,7 +139,7 @@ public Command shoot() {
     
     return this.run(() -> {
         // Apply velocity control to motor 1 (motor 2 follows)
-        shooterMotor1.set(1);
+        shooterMotor1.set(0.1);
     });
 }
     
