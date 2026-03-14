@@ -162,10 +162,12 @@ public void periodic() {
     
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
     targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
+    targetPitchDegrees = 42-targetPitchDegrees;
+    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
 
     //double combinedPivotTargetRotations = -pitchOnlyDeg; 
-    // double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 39.11/4;
-    double pitchOnlyRotations = (targetPitchDegrees / 360.0 );
+    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
+    //double pitchOnlyRotations = (targetPitchDegrees / 360.0 );
     //double combinedPivotTargetDeg = -pitchOnlyDeg; 
     //double combinedPivotTargetDeg = pitchOnlyRotations - ((turretRotations/TURRET_GEAR_RATIO))/2; 
     double combinedPivotTargetDeg =  turretRotations; 
