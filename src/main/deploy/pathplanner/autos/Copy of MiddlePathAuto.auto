@@ -7,25 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "L-Shoot-Begin"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
+            "pathName": "middle path"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot-Climb"
+            "pathName": "Middlepath2"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Climb"
+            "pathName": "MiddlePath3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath4"
           }
         }
       ]

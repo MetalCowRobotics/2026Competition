@@ -23,6 +23,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Stop Intake"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "MiddlePath3"
@@ -41,116 +47,19 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Stop Intake"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
                   "name": "Shoot"
                 }
               },
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 4.0
+                  "waitTime": 8.0
                 }
               },
               {
                 "type": "named",
                 "data": {
                   "name": "Stop Shoot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Feed"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Spindexer"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath5"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Middlepath2"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Feed"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath4"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Intake"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Shoot"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 4.0
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Shoot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Feed"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Stop Spindexer"
                 }
               }
             ]

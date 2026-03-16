@@ -8,11 +8,11 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.052290450130739,
-        "y": 0.6906149843165119
+        "x": 3.407600539435059,
+        "y": 0.6679344217037524
       },
       "isLocked": false,
-      "linkedName": "Center-B"
+      "linkedName": null
     },
     {
       "anchor": {
@@ -20,15 +20,20 @@
         "y": 0.779
       },
       "prevControl": {
-        "x": 7.011167610044287,
-        "y": 0.7524929738434776
+        "x": 6.925422612844199,
+        "y": 0.7978253420797153
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Middle-Cen"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.7,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 5.45,
-    "rotation": -90.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

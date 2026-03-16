@@ -41,10 +41,10 @@ public class Spindexer extends SubsystemBase {
      * Runs the spindexer forward. 
      * Using 'runEnd' ensures it stops immediately when the button is released.
      */
+    
     public Command runSpindexerCommand() {
-        return this.runEnd(
-            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED), // 50% power is usually enough for indexing
-            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED)
+        return this.run(
+            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED) // 50% power is usually enough for indexing
         );
     }
 

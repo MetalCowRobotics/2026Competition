@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.StrictFollower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -50,10 +51,10 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
     slot0.kP = 5; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 150.0; // Limit motor heat
+    config.CurrentLimits.StatorCurrentLimit = 45; // Limit motor heat TODO: Change 
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 70.0; // Limit battery draw
+    config.CurrentLimits.SupplyCurrentLimit = 45; // Limit battery draw TODO: Change
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -71,14 +72,14 @@ public class Shooter extends SubsystemBase implements ShooterInterface {
         // Configure shooter motor two
         // config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     
-         config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1; // 1 second ramp
+    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1; // 1 second ramp
     slot0.kP = 5; 
     slot0.kV = 0.12; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 150.0; // Limit motor heat
+    config.CurrentLimits.StatorCurrentLimit = 15.0; // Limit motor heat TODO:Change back
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 70.0; // Limit battery draw
+    config.CurrentLimits.SupplyCurrentLimit = 15.0; // Limit battery draw TODO:Change back
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -136,10 +137,11 @@ private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest =
 
 public Command shoot() {
     double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
+    var velocityRequest =  new VelocityVoltage(30);
     
     return this.run(() -> {
         // Apply velocity control to motor 1 (motor 2 follows)
-        shooterMotor1.set(0.1);
+        shooterMotor1.setControl(velocityRequest);
     });
 }
     

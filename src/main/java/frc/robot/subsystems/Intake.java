@@ -31,7 +31,7 @@ public class Intake extends SubsystemBase {
 
         intakePivotMotor.setPosition(0);
 
-        intakeconfig.Slot0.kP=40;
+        intakeconfig.Slot0.kP=20;
 
         // Retry logic to ensure intakeconfig is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -62,23 +62,29 @@ public class Intake extends SubsystemBase {
         );
     }
 
+       public Command startIntakeCommand() {
+        return this.runOnce(
+            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED)
+        );
+    }
+
     public void pivotAgitate()
     {
 
-         intakePivotMotor.setControl(new PositionVoltage(1)
-);        // while (true) {
-        // if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1));
-        // if(intakePivotMotor.getPosition().getValueAsDouble() > 0.9) intakePivotMotor.setControl(new PositionVoltage(0));}
+         //intakePivotMotor.setControl(new PositionVoltage(1));
+        if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1));
+        if(intakePivotMotor.getPosition().getValueAsDouble() > 0.9) intakePivotMotor.setControl(new PositionVoltage(0));
+        intakeMotor.set(-0.3);
     }
     
     public void pivotStopAgitate()
     {
-       intakePivotMotor.set(0);
+       intakePivotMotor.setControl(new PositionVoltage(0));
     }
 
        public Command endIntakeCommand() {
         return this.runOnce(
-            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED)
+            () -> intakeMotor.set(0)
         );
     }
 

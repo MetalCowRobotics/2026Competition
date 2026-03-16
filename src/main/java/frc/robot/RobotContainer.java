@@ -28,8 +28,8 @@ import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)/2; // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond)/2; // 1/2 of a rotation per second
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    private double MaxAngularRate = RotationsPerSecond.of(1).in(RadiansPerSecond); // 1/2 of a rotation per second
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -88,12 +88,10 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
-        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.shoot()));
-        NamedCommands.registerCommand("Stop Shoot", shooter.shooterStop());
-        NamedCommands.registerCommand("Intake", intake.runIntakeCommand().alongWith(spindexer.runSpindexerCommand()));
+        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.shoot()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
+        NamedCommands.registerCommand("Stop Shoot", feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()).alongWith(intake.pivotStopAgitateCommand()));
+        NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
-        NamedCommands.registerCommand("Stop Spindexer", spindexer.stopSpindexerCommand());
-        NamedCommands.registerCommand("Stop Feed", feeder.stopFeederCommand());
 
         configureBindings();
     }
@@ -108,6 +106,11 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
+
+        turret.setDefaultCommand(turret.autoS());
+        operatorController.b().whileTrue(turret.tZero());
+
+        operatorController.povDown().onTrue(turret.lowerP());
         
         //joystick.a().whileTrue(spindexer.runSpindexerCommand()
               // .alongWith(feeder.runFeederCommand()));
@@ -127,15 +130,14 @@ public class RobotContainer {
         // OPERATOR COMMANDS
 
 
-        operatorController.x().onTrue(intake.runIntakeCommand().alongWith(spindexer.runSpindexerCommand()));
-        //operatorController.x().onFalse(intake.endIntakeCommand().alongWith(spindexer.stopSpindexerCommand()));
+        operatorController.x().onTrue(intake.runIntakeCommand());
+        operatorController.x().toggleOnFalse(intake.endIntakeCommand());
 
-        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.shoot()));
-        //operatorController.y().onFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()));
+        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.shoot()).alongWith(spindexer.runSpindexerCommand()));
+        operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
 
         operatorController.a().onTrue(intake.pivotAgitateCommand());
-        //operatorController.a().onFalse(intake.pivotStopAgitateCommand());
-
+        operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
 
         
     }
