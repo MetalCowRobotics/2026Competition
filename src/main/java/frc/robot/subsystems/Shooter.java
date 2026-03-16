@@ -21,22 +21,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
 
-public class Shooter extends SubsystemBase implements ShooterInterface {
+public class Shooter extends SubsystemBase {
     private final TalonFX shooterMotor1;
     private final TalonFX shooterMotor2;
     // private final Turret turret;
     private double targetPosition;
     private boolean shooterEnabled = false;
 
-    private ShootingParams params;
-
     public Shooter() {
         shooterMotor1 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ONE_ID);
         shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
-
-        // turret = new Turret();
-
-        params=new ShootingParams();
 
         // Configure the motor
         configureMotors();
