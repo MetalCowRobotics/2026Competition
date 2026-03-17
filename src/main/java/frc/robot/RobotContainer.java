@@ -18,7 +18,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.*;
-import edu.wpi.first.wpilibj.DriverStation;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -36,8 +34,8 @@ public class RobotContainer {
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             // .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+    public final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+    public final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
     private final SwerveRequest.RobotCentric forwardStraight = new SwerveRequest.RobotCentric()
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -47,26 +45,25 @@ public class RobotContainer {
     public final CommandXboxController operatorController = new CommandXboxController(1); // Operator controller
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    private final Vision vision;
+    public final Vision vision;
     private final Turret turret;
     private final Shooter shooter;
     private final Intake intake;
     private final Spindexer spindexer;
     private final Feeder feeder;
 
-    private Pose2d pose;
-    private char alliance;
-    private ChassisSpeeds cSpeeds;
+    public Pose2d pose;
+    public char alliance;
+    public ChassisSpeeds cSpeeds;
 
     private enum RobotState {
         IDLE,
         INTAKING,
         SHOOTING,
         REVERSING,
-        AGITATING
         }
         
-    private RobotState currentState = RobotState.IDLE;
+    public RobotState currentState = RobotState.IDLE;
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -102,18 +99,17 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
-        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.shoot()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
+        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.startShooter()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Stop Shoot", feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()).alongWith(intake.pivotStopAgitateCommand()));
         NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
 
         configureBindings();
+
+        stateMachineCommand().schedule();
     }
 
-    private void setState(RobotState newState) {
-        currentState = newState;
-    }
-
+   
 
 
     private void configureBindings() {
@@ -131,16 +127,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        // OPERATOR COMMANDS
-
-
-
-        turret.setDefaultCommand(turret.autoTrackingCommand());
-        operatorController.b().whileTrue(turret.zeroPivotCommand());
-
-        operatorController.povDown().onTrue(turret.lowerPivot());
-        
-        joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
+         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(0.5).withVelocityY(0))
         );
         joystick.pov(180).whileTrue(drivetrain.applyRequest(() ->
@@ -148,21 +135,25 @@ public class RobotContainer {
         );
 
 
-
-
-        joystick.a().toggleOnTrue(shooter.shoot());
-
+        
+       
         // OPERATOR COMMANDS
+        operatorController.x().onTrue(
+            Commands.runOnce(() -> setState(RobotState.INTAKING))
+        );
 
+        operatorController.leftBumper().onTrue(
+            Commands.runOnce(() -> setState(RobotState.SHOOTING))
+        );
 
-        operatorController.x().onTrue(intake.runIntakeCommand());
-        operatorController.x().toggleOnFalse(intake.endIntakeCommand());
+        operatorController.a().onTrue(
+            Commands.runOnce(() -> setState(RobotState.REVERSING))
+        );
 
-        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.shoot()).alongWith(spindexer.runSpindexerCommand()));
-        operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
+        operatorController.rightBumper().onTrue(
+            Commands.runOnce(() -> setState(RobotState.IDLE))
+        );
 
-        operatorController.a().onTrue(intake.pivotAgitateCommand());
-        operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
 
         
     }
@@ -181,11 +172,16 @@ public class RobotContainer {
 
     }
 
+     private void setState(RobotState newState) {
+        currentState = newState;
+    }
+
+
     private Command stateMachineCommand() {
 
     return Commands.run(() -> {
 
-        switch (currentState) {
+        switch (this.currentState) {
 
             case IDLE:
 
@@ -194,39 +190,43 @@ public class RobotContainer {
                 turret.zeroPivotCommand();
                 turret.zeroTurretCommand();
                 spindexer.stopSpindexerCommand();
-
-                
-
+                feeder.stopFeederCommand();
+                intake.pivotStopAgitateCommand();
 
                 break;
 
             case INTAKING:
 
-                // run intake
-                // run spindexer
-                // stop shooter
-                // stop feeder
+                intake.startIntakeCommand();
+                shooter.shooterStop();
+                turret.zeroPivotCommand();
+                turret.zeroTurretCommand();
+                spindexer.stopSpindexerCommand();
+                feeder.stopFeederCommand();
+                intake.pivotStopAgitateCommand();
 
                 break;
 
             case SHOOTING:
 
-                // spin shooter
-                // run feeder
-                // run spindexer
+                shooter.startShooter();
+                intake.startSlowIntakeCommand();
+                turret.autoTrackingCommand();
+                spindexer.runSpindexerCommand();
+                feeder.runFeederCommand();
+                intake.pivotAgitateCommand();
 
                 break;
 
             case REVERSING:
 
-                // reverse intake
-                // reverse spindexer
-
-                break;
-
-            case AGITATING:
-
-                // run pivot agitation
+                intake.reverseIntakeCommand();
+                shooter.shooterStop();
+                turret.zeroPivotCommand();
+                turret.zeroTurretCommand();
+                spindexer.reverseSpindexerCommand();
+                feeder.reverseFeederCommand();
+                intake.pivotStopAgitateCommand();
 
                 break;
         }

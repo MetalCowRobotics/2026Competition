@@ -68,6 +68,12 @@ public class Intake extends SubsystemBase {
         );
     }
 
+     public Command startSlowIntakeCommand() {
+        return this.runOnce(
+            () -> intakeMotor.set(IntakeConstants.INTAKE_SLOW_SPEED)
+        );
+    }
+
     public void pivotAgitate(){
 
          //intakePivotMotor.setControl(new PositionVoltage(1));

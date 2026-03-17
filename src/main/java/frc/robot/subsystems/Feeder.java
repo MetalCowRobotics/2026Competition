@@ -62,4 +62,7 @@ public class Feeder extends SubsystemBase {
     public Command stopFeederCommand() {
         return this.runOnce(() -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED));
     }
+     public Command reverseFeederCommand() {
+        return this.runOnce(() -> feederMotor.set(-FeederConstants.FEEDER_SLOW_SPEED));
+    }
 }

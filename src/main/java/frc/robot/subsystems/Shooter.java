@@ -123,7 +123,7 @@ public class Shooter extends SubsystemBase {
     // Create a reusable velocity request
     private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = new com.ctre.phoenix6.controls.VelocityVoltage(20);
 
-    public Command shoot() {
+    public Command startShooter() {
         double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
         var velocityRequest =  new VelocityVoltage(30);
         
