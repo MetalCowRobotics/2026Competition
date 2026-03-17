@@ -92,13 +92,16 @@ public class Shooter extends SubsystemBase {
 
     public void setTargetPosition(double positionMeters) {
         targetPosition = positionMeters;
-        //shooterMotor1.setControl(motionMagicRequest.withPosition(positionMeters / ShooterConstants.METERS_PER_ROTATION).withSlot(0));
+    
     }
 
     @Override
     public void periodic() {
          // This method will be called once per scheduler run
-
+        SmartDashboard.putNumber("Shooter/Shooter_Velo_1", shooterMotor1.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/Shooter_Velo_2", shooterMotor2.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/Shooter_Position_1", shooterMotor1.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/Shooter_Position_2", shooterMotor2.getPosition().getValueAsDouble());
     }
 
     // @Override
@@ -116,38 +119,18 @@ public class Shooter extends SubsystemBase {
             () -> stop()
         );
     }
-    
-    // public Command shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    // {
-    //     return this.runOnce(
-    //         // When the command starts, run the intake
-    //         () -> setTargetPosition(turret.getYawAngle(robotPose, robotVelocity, alliance))
-    //     );
-    // }
 
     // Create a reusable velocity request
-private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
-    new com.ctre.phoenix6.controls.VelocityVoltage(20);
+    private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = new com.ctre.phoenix6.controls.VelocityVoltage(20);
 
-public Command shoot() {
-    double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
-    var velocityRequest =  new VelocityVoltage(30);
+    public Command shoot() {
+        double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
+        var velocityRequest =  new VelocityVoltage(30);
+        
+        return this.run(() -> {
+            // Apply velocity control to motor 1 (motor 2 follows)
+            shooterMotor1.setControl(velocityRequest);
+        });
+    }
     
-    return this.run(() -> {
-        // Apply velocity control to motor 1 (motor 2 follows)
-        shooterMotor1.setControl(velocityRequest);
-    });
-}
-    
-
-
-
-    // public ShootingParams shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    // {
-    //     ShootingParams tp =  new ShootingParams();
-    //     tp.yawAngle = turret.getYawAngle(robotPose, robotVelocity, alliance);        
-    //     return tp;
-    // }
-
-    //54.7555
 }

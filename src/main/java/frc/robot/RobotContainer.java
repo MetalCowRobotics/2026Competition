@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -57,6 +58,16 @@ public class RobotContainer {
     private char alliance;
     private ChassisSpeeds cSpeeds;
 
+    private enum RobotState {
+        IDLE,
+        INTAKING,
+        SHOOTING,
+        REVERSING,
+        AGITATING
+        }
+        
+    private RobotState currentState = RobotState.IDLE;
+
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
     private final SendableChooser<String> autoLocationChooser;
@@ -69,7 +80,10 @@ public class RobotContainer {
         intake = new Intake();
         spindexer = new Spindexer();
         feeder = new Feeder();
-        
+
+  
+
+
         pose = drivetrain.getState().Pose;
         cSpeeds = drivetrain.getState().Speeds;
         
@@ -96,7 +110,15 @@ public class RobotContainer {
         configureBindings();
     }
 
+    private void setState(RobotState newState) {
+        currentState = newState;
+    }
+
+
+
     private void configureBindings() {
+        
+        
         // DRIVE COMMANDS
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
@@ -107,13 +129,16 @@ public class RobotContainer {
             )
         );
 
-        turret.setDefaultCommand(turret.autoS());
-        operatorController.b().whileTrue(turret.tZero());
+        drivetrain.registerTelemetry(logger::telemeterize);
 
-        operatorController.povDown().onTrue(turret.lowerP());
-        
-        //joystick.a().whileTrue(spindexer.runSpindexerCommand()
-              // .alongWith(feeder.runFeederCommand()));
+        // OPERATOR COMMANDS
+
+
+
+        turret.setDefaultCommand(turret.autoTrackingCommand());
+        operatorController.b().whileTrue(turret.zeroPivotCommand());
+
+        operatorController.povDown().onTrue(turret.lowerPivot());
         
         joystick.pov(0).whileTrue(drivetrain.applyRequest(() ->
             forwardStraight.withVelocityX(0.5).withVelocityY(0))
@@ -123,7 +148,7 @@ public class RobotContainer {
         );
 
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+
 
         joystick.a().toggleOnTrue(shooter.shoot());
 
@@ -155,4 +180,57 @@ public class RobotContainer {
         }
 
     }
+
+    private Command stateMachineCommand() {
+
+    return Commands.run(() -> {
+
+        switch (currentState) {
+
+            case IDLE:
+
+                intake.endIntakeCommand();
+                shooter.shooterStop();
+                turret.zeroPivotCommand();
+                turret.zeroTurretCommand();
+                spindexer.stopSpindexerCommand();
+
+                
+
+
+                break;
+
+            case INTAKING:
+
+                // run intake
+                // run spindexer
+                // stop shooter
+                // stop feeder
+
+                break;
+
+            case SHOOTING:
+
+                // spin shooter
+                // run feeder
+                // run spindexer
+
+                break;
+
+            case REVERSING:
+
+                // reverse intake
+                // reverse spindexer
+
+                break;
+
+            case AGITATING:
+
+                // run pivot agitation
+
+                break;
+        }
+
+    }, intake, feeder, shooter, spindexer);
+}
 }

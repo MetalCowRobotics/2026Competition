@@ -68,8 +68,7 @@ public class Intake extends SubsystemBase {
         );
     }
 
-    public void pivotAgitate()
-    {
+    public void pivotAgitate(){
 
          //intakePivotMotor.setControl(new PositionVoltage(1));
         if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1));
@@ -77,17 +76,17 @@ public class Intake extends SubsystemBase {
         intakeMotor.set(-0.3);
     }
     
-    public void pivotStopAgitate()
-    {
+    public void pivotStopAgitate(){
        intakePivotMotor.setControl(new PositionVoltage(0));
     }
 
-       public Command endIntakeCommand() {
+    public Command endIntakeCommand() {
         return this.runOnce(
             () -> intakeMotor.set(0)
         );
     }
-
+    
+    // use for whileTrue
     public Command reverseIntakeCommand() {
         return this.startEnd(
             () -> intakeMotor.set(IntakeConstants.INTAKE_REVERSE_SPEED),

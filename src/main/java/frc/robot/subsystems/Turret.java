@@ -27,12 +27,11 @@ public class Turret extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
 
     // Control Constants
-    private final double KP1 = 0.09; 
-     private final double KP2 = 0.01; 
+    private final double KP_TURRET = 0.01; 
     private final double TURRET_GEAR_RATIO = 11.0;
     private final double PIVOT_GEAR_RATIO = 50.28571428571429; // Your custom multiplier
 
-    PIDController pid = new PIDController(KP2, 0,0);
+    PIDController pid = new PIDController(KP_TURRET, 0,0);
     
     
     // Physics Constants (Standardized to Feet for the formula)
@@ -84,12 +83,7 @@ public class Turret extends SubsystemBase {
         pivotConfig.Slot0.kP = 45;
         pivotConfig.Slot0.kV = 250;
 
-        // Software Limit Switches for Pivot (Safety logic)
-        // Converts 0-45 degrees (scaled) into motor rotations
-
-        //         // Resets the internal encoder positions to 0.0 rotations
-        //turretMotor.setPosition(0.0);
-       zeroSensors();
+        zeroMotors();
       
       
         turretMotor.getConfigurator().apply(turretConfig);
@@ -98,48 +92,57 @@ public class Turret extends SubsystemBase {
 
     }
     
-/**
- * Manually resets encoder positions to zero. 
- * Use this when the turret and pivot are physically at their "home" positions.
- */
-public void zeroSensors() {
-    turretMotor.setPosition(0);
-    pivotMotor.setPosition(0);
-}
+    /**
+     * Manually resets encoder positions to zero. 
+     * Use this when the turret and pivot are physically at their "home" positions.
+     */
+    public void zeroMotors() {
+        turretMotor.setPosition(0);
+        pivotMotor.setPosition(0);
+    }
 
-public Command autoS() {
-    return this.run(
-        () -> autoScore()
-    );
-}
+    public Command autoTrackingCommand() {
+        return this.run(
+            () -> autoTracking()
+        );
+    }
 
-private void zero()
-{
-    PositionVoltage p = new PositionVoltage(0);
-    pivotMotor.setControl(p.withPosition(0));
-}
+    private void zeroPivot(){
+        PositionVoltage p = new PositionVoltage(0);
+        pivotMotor.setControl(p.withPosition(0));
+    }
 
-public Command tZero() {
-    return this.run(
-        () -> zero()
-    );
-}
+    public Command zeroPivotCommand() {
+        return this.run(
+            () -> zeroPivot()
+        );
+    }
 
-public Command lowerP()
-{
-    return this.run(
-        () -> pivotMotor.set(-0.1)
-    );
-}
+    private void zeroTurret(){
+        PositionVoltage p = new PositionVoltage(0);
+        turretMotor.setControl(p.withPosition(0));
+    }
 
-public Command stopP()
-{
-    return this.run(
-        () -> pivotMotor.set(0)
-    );
-}
+    public Command zeroTurretCommand() {
+        return this.run(
+            () -> zeroTurret()
+        );
+    }
+
+    public Command lowerPivot()
+    {
+        return this.run(
+            () -> pivotMotor.set(-0.1)
+        );
+    }
+
+    public Command stopPivot(){
+        return this.run(
+            () -> pivotMotor.set(0)
+        );
+    }
    
-private void autoScore(){
+    private void autoTracking(){
     Pose2d robotPos = drivetrain.getState().Pose;
     
 
@@ -192,9 +195,8 @@ private void autoScore(){
     turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees();
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
-    turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP2);
+    turretMotor.set(Math.abs(turretError) < 3 ? 0 : turretError * KP_TURRET);
 
-    //turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
         
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
@@ -204,25 +206,17 @@ private void autoScore(){
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
-
-    double combinedPivotTargetDeg =  turretRotations; 
   
     pivotMotor.setControl(request.withPosition(turretRotations*0.2147+pitchOnlyRotations));
-
-    // --- 6. TELEMETRY ---
-    
-    
 }
 
 
 @Override
 public void periodic() {
-   // --- 1. GET ROBOT STATE ---
-    // SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
-    // SmartDashboard.putNumber("Turret/Pivot_Target_Rotations", pitchOnlyRotations);
-    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
+   // --- TELEMETRY ---
+
+    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble() * 360);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
-    // SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Turret_Deg", currentTurretAngle);
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 }
