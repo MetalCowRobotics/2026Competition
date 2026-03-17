@@ -101,9 +101,9 @@ public class Turret extends SubsystemBase {
         pivotMotor.setPosition(0);
     }
 
-    public Command autoTrackingCommand() {
+    public Command autoTrackingHubCommand() {
         return this.run(
-            () -> autoTracking()
+            () -> autoTrackingHub()
         );
     }
 
@@ -142,7 +142,7 @@ public class Turret extends SubsystemBase {
         );
     }
    
-    private void autoTracking(){
+    private void autoTrackingHub(){
     Pose2d robotPos = drivetrain.getState().Pose;
     
 

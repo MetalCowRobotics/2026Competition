@@ -209,9 +209,10 @@ public class RobotContainer {
 
             case SHOOTING:
 
+            
                 shooter.startShooter();
                 intake.startSlowIntakeCommand();
-                turret.autoTrackingCommand();
+                turret.autoTrackingHubCommand();
                 spindexer.runSpindexerCommand();
                 feeder.runFeederCommand();
                 intake.pivotAgitateCommand();
