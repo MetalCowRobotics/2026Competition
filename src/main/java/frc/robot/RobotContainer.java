@@ -208,11 +208,15 @@ public class RobotContainer {
                 break;
 
             case SHOOTING:
-
-            
                 shooter.startShooter();
                 intake.startSlowIntakeCommand();
-                turret.autoTrackingHubCommand(alliance);
+
+                if(pose.getY()>4 || pose.getY()<12.535){
+                    turret.passingCommand(pose, alliance);
+                }else{
+                    turret.autoTrackingHubCommand(alliance);
+                }
+                    
                 spindexer.runSpindexerCommand();
                 feeder.runFeederCommand();
                 intake.pivotAgitateCommand();
