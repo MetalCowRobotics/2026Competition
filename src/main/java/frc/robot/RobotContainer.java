@@ -72,8 +72,8 @@ public class RobotContainer {
     public RobotContainer() {
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-        turret = new Turret(drivetrain);
         shooter = new Shooter();
+        turret = new Turret(drivetrain,shooter);        
         intake = new Intake();
         spindexer = new Spindexer();
         feeder = new Feeder();
@@ -212,7 +212,7 @@ public class RobotContainer {
             
                 shooter.startShooter();
                 intake.startSlowIntakeCommand();
-                turret.autoTrackingHubCommand();
+                turret.autoTrackingHubCommand(alliance);
                 spindexer.runSpindexerCommand();
                 feeder.runFeederCommand();
                 intake.pivotAgitateCommand();
