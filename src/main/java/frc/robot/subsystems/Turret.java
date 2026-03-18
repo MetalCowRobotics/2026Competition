@@ -41,8 +41,8 @@ public class Turret extends SubsystemBase {
     private final double SHOOTER_SPEED = 10.77;
     private final double GRAVITY = 9.81;
 
-    private final double SHOOTER_CURRENT_TURRET_FF = 0.0;
-    private final double SHOOTER_CURRENT_PIVOT_FF  = 0.0;
+    private final double SHOOTER_CURRENT_TURRET_FF = -1.0;
+    private final double SHOOTER_CURRENT_PIVOT_FF  = 0.1;
 
         double targetPitchDegrees;
         double currentTurretAngle;
@@ -80,7 +80,7 @@ public class Turret extends SubsystemBase {
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 45;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        turretConfig.Slot0.kV = 250;
+        turretConfig.Slot0.kV = 50;
         turretConfig.Slot0.kI = 0.001;
 
 
@@ -255,7 +255,6 @@ private void autoTrackingHub(char a){
     double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
     turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * KP_TURRET);
 
-    //turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
         
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));

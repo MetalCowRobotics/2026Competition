@@ -45,10 +45,10 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 45; // Limit motor heat TODO: Change 
+    config.CurrentLimits.StatorCurrentLimit = 15; // Limit motor heat TODO: Change 
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 45; // Limit battery draw TODO: Change
+    config.CurrentLimits.SupplyCurrentLimit = 15; // Limit battery draw TODO: Change
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -136,11 +136,11 @@ private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest =
 
 public Command startShooter() {
     double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
-    var velocityRequest =  new VelocityVoltage(30);
+    //var velocityRequest =  new VelocityVoltage(30);
     
     return this.run(() -> {
         // Apply velocity control to motor 1 (motor 2 follows)
-        shooterMotor1.setControl(velocityRequest);
+        shooterMotor1.set(0.7);
     });
 }
     

@@ -29,6 +29,7 @@ public class Intake extends SubsystemBase {
         
         intakeconfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
+        //intakePivotMotor.setPosition(2.68); //TODO: RESET THIS
         intakePivotMotor.setPosition(0);
 
         intakeconfig.Slot0.kP=20;
@@ -80,6 +81,12 @@ public class Intake extends SubsystemBase {
         if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1));
         if(intakePivotMotor.getPosition().getValueAsDouble() > 0.9) intakePivotMotor.setControl(new PositionVoltage(0));
         intakeMotor.set(-0.3);
+    }
+
+    public Command pivotStart() {
+        return this.runOnce(
+            () -> intakePivotMotor.setControl(new PositionVoltage(0))
+        );
     }
     
     public void pivotStopAgitate(){
