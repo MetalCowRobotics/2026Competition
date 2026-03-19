@@ -78,7 +78,7 @@ public class Spindexer extends SubsystemBase {
 
     @Override
     public void periodic(){
-        if(shooter.getShooterCurrent()>15){
+        if(shooter.getSpeed()>95){
             spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED);
         }else{
             spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
