@@ -13,9 +13,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.controller.PIDController;
 
 
@@ -30,7 +27,6 @@ public class Turret extends SubsystemBase {
     // Control Constants
     private final double KP_TURRET = 0.01; 
     private final double TURRET_GEAR_RATIO = 11.0;
-    private final double PIVOT_GEAR_RATIO = 50.28571428571429; // Your custom multiplier
 
     PIDController pid = new PIDController(KP_TURRET, 0,0);
 
@@ -47,9 +43,6 @@ public class Turret extends SubsystemBase {
         double targetPitchDegrees;
         double currentTurretAngle;
         double turretTargetDeg;
-    
-
-    private final SlewRateLimiter pivotRamp = new SlewRateLimiter(0.5);
     
     PositionVoltage request = new PositionVoltage(0);
 
@@ -212,10 +205,6 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
    
-    private void autoTracking(){
-    Pose2d robotPos = drivetrain.getState().Pose;
-    }
-    
    
 public void autoTrackingHub(char a){
     Pose2d robotPos = drivetrain.getState().Pose;
@@ -291,8 +280,6 @@ public void autoTrackingHub(char a){
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
-
-    double combinedPivotTargetDeg =  turretRotations; 
   
     pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
 }
@@ -373,14 +360,11 @@ public void autoTrackingPass(Translation2d desiredTarget){
 
     //turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
-        
-    double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
-    targetPitchDegrees = 30;
+
+    targetPitchDegrees = 30; //TODO: 30 is just random angle
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
-
-    double combinedPivotTargetDeg =  turretRotations; 
   
     pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
 }

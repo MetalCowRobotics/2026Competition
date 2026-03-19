@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.constants.SpindexerConstants;
 import frc.robot.generated.TunerConstants;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.*;
@@ -106,6 +107,11 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
 
+        NamedCommands.registerCommand("Shooting", setStateCommand(RobotState.SHOOTING));
+        NamedCommands.registerCommand("Home", setStateCommand(RobotState.IDLE));
+        NamedCommands.registerCommand("Intaking", setStateCommand(RobotState.INTAKING));
+       
+
         configureBindings();
 
         intake.setDefaultCommand(stateMachineCommand());
@@ -119,6 +125,10 @@ public class RobotContainer {
 
      private void setState(RobotState newState) {
         currentState = newState;
+    }
+
+    private Command setStateCommand(RobotState newState){
+    return Commands.runOnce(() -> setState(newState));
     }
 
 
@@ -184,6 +194,11 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         try{
+
+            if(autoChooser.getSelected().getName().endsWith("(No Mirror)")){
+                return new PathPlannerAuto(autoChooser.getSelected().getName(), false);
+            }
+
             if(autoLocationChooser.getSelected().equals("Right")){
                 return new PathPlannerAuto(autoChooser.getSelected().getName(), false);
             }else{
