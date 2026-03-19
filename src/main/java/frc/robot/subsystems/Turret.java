@@ -37,8 +37,8 @@ public class Turret extends SubsystemBase {
     private final double SHOOTER_SPEED = 10.77;
     private final double GRAVITY = 9.81;
 
-    private final double SHOOTER_CURRENT_TURRET_FF = -1.0;
-    private final double SHOOTER_CURRENT_PIVOT_FF  = 0.1;
+    private final double SHOOTER_CURRENT_TURRET_FF = -0.4;
+    private final double SHOOTER_CURRENT_PIVOT_FF  = 0;
 
         double targetPitchDegrees;
         double currentTurretAngle;
@@ -84,7 +84,7 @@ public class Turret extends SubsystemBase {
         pivotConfig.CurrentLimits.StatorCurrentLimit = 45;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         pivotConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
-        pivotConfig.Slot0.kP = 45;
+        pivotConfig.Slot0.kP = 100;
         pivotConfig.Slot0.kV = 250;
 
         // Software Limit Switches for Pivot (Safety logic)

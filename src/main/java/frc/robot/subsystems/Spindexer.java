@@ -10,10 +10,12 @@ import frc.robot.constants.SpindexerConstants;
 
 public class Spindexer extends SubsystemBase {
     private final TalonFX spindexerMotor;
+    Shooter shooter;
 
-    public Spindexer() {
+    public Spindexer(Shooter shooter) {
         // Use a different CAN ID than your intake (e.g., 17)
         spindexerMotor = new TalonFX(31);
+         this.shooter = shooter;
         configureMotors();
     }
 
@@ -43,9 +45,12 @@ public class Spindexer extends SubsystemBase {
      */
     
     public Command runSpindexerCommand() {
-        return this.run(
+     
+ return this.run(
             () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED) // 50% power is usually enough for indexing
         );
+        
+       
     }
 
      public void runSpindexer() {
@@ -69,5 +74,14 @@ public class Spindexer extends SubsystemBase {
 
     public void stopSpindexer(){
         spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
+    }
+
+    @Override
+    public void periodic(){
+        if(shooter.getShooterCurrent()>15){
+            spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED);
+        }else{
+            spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
+        }
     }
 }

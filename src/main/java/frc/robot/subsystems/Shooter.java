@@ -6,9 +6,14 @@ import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
+import frc.robot.constants.SpindexerConstants;
+
 
 public class Shooter extends SubsystemBase {
     private final TalonFX shooterMotor1;
@@ -16,12 +21,18 @@ public class Shooter extends SubsystemBase {
 
     private boolean shooterEnabled = false;
 
+    SlewRateLimiter limiter = new SlewRateLimiter(20);
+
     public Shooter() {
         shooterMotor1 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ONE_ID);
         shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
 
         // Configure the motor
         configureMotors();
+    }
+
+    public boolean isAtSpeed(){
+        return shooterMotor1.getVelocity().getValueAsDouble() > 300 && shooterMotor1.getVelocity().getValueAsDouble() > 300;
     }
 
    private void configureMotors() {
@@ -33,13 +44,13 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 40; // Limit motor heat TODO: Change 
+    config.CurrentLimits.StatorCurrentLimit = 25; // Limit motor heat TODO: Change 
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 40; // Limit battery draw TODO: Change
+    config.CurrentLimits.SupplyCurrentLimit = 25; // Limit battery draw TODO: Change
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
-    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -58,13 +69,13 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 0.12; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 40.0; // Limit motor heat TODO:Change back
+    config.CurrentLimits.StatorCurrentLimit = 25.0; // Limit motor heat TODO:Change back
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 40.0; // Limit battery draw TODO:Change back
+    config.CurrentLimits.SupplyCurrentLimit = 25.0; // Limit battery draw TODO:Change back
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
-    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
         status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
@@ -81,7 +92,7 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
          // This method will be called once per scheduler run
-
+        SmartDashboard.putNumber("Shooter Current", getShooterCurrent());
     }
 
     public double getShooterCurrent()
@@ -96,7 +107,6 @@ public class Shooter extends SubsystemBase {
 
     public void stopShooter() {
         shooterMotor1.set(0);
-        shooterMotor2.set(0);
     }
 
     public Command shooterStop()
@@ -118,15 +128,32 @@ public class Shooter extends SubsystemBase {
 private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
     new com.ctre.phoenix6.controls.VelocityVoltage(20);
 
-public Command startShooter() {
-    double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
-    //var velocityRequest =  new VelocityVoltage(30);
+// public Command startShooter() {
+//     double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
+//     //var velocityRequest =  new VelocityVoltage(30);
     
-    return this.run(() -> {
-        // Apply velocity control to motor 1 (motor 2 follows)
-        shooterMotor1.set(1);
-    });
+//     return this.run(() -> {
+
+//     }}
+
+//         // Apply velocity control to motor 1 (motor 2 follows)
+//         shooterMotor1.set(1);
+//     });
+// }
+
+public void startShooter(){
+
+    double smoothSpeed1 = limiter.calculate(1);
+    double smoothSpeed2 = limiter.calculate(1);
+    
+    shooterMotor1.set(smoothSpeed1);
+    shooterMotor2.set(smoothSpeed2);
 }
+    
+public Command startShooterCommand() {
+        return this.runOnce(() -> startShooter());
+    }
+
     
 
 

@@ -76,8 +76,8 @@ public class RobotContainer {
         shooter = new Shooter();
         turret = new Turret(drivetrain,shooter);        
         intake = new Intake();
-        spindexer = new Spindexer();
-        feeder = new Feeder();
+        spindexer = new Spindexer(shooter);
+        feeder = new Feeder(shooter);
 
         currentState =  RobotState.IDLE;
 
@@ -102,10 +102,10 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
-        NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.startShooter()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
-        NamedCommands.registerCommand("Stop Shoot", feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()).alongWith(intake.pivotStopAgitateCommand()));
-        NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
-        NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
+        // NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.startShooter()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
+        // NamedCommands.registerCommand("Stop Shoot", feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()).alongWith(intake.pivotStopAgitateCommand()));
+        // NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
+        // NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
 
         NamedCommands.registerCommand("Shooting", setStateCommand(RobotState.SHOOTING));
         NamedCommands.registerCommand("Home", setStateCommand(RobotState.IDLE));
@@ -114,11 +114,12 @@ public class RobotContainer {
 
         configureBindings();
 
-        intake.setDefaultCommand(stateMachineCommand());
-        shooter.setDefaultCommand(stateMachineCommand());
-        turret.setDefaultCommand(stateMachineCommand());
-        feeder.setDefaultCommand(stateMachineCommand());
-        spindexer.setDefaultCommand(stateMachineCommand());
+        // intake.setDefaultCommand(stateMachineCommand());
+        // shooter.setDefaultCommand(stateMachineCommand());
+        // turret.setDefaultCommand(stateMachineCommand());
+        // turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
+        // feeder.setDefaultCommand(stateMachineCommand());
+        // spindexer.setDefaultCommand(stateMachineCommand());
     }
 
    
@@ -159,36 +160,47 @@ public class RobotContainer {
         
        
         // OPERATOR COMMANDS
-        operatorController.x().onTrue(
-            Commands.runOnce(() -> setState(RobotState.INTAKING))
-        );
+        // operatorController.x().onTrue(
+        //     Commands.runOnce(() -> setState(RobotState.INTAKING))
+        // );
 
-        operatorController.leftBumper().onTrue(
-            Commands.runOnce(() -> setState(RobotState.SHOOTING))
-        );
+        // operatorController.leftBumper().onTrue(
+        //     Commands.runOnce(() -> setState(RobotState.SHOOTING))
+        // );
 
-        operatorController.a().onTrue(
-            Commands.runOnce(() -> setState(RobotState.REVERSING))
-        );
+        // operatorController.a().onTrue(
+        //     Commands.runOnce(() -> setState(RobotState.REVERSING))
+        // );
 
-        operatorController.rightBumper().onTrue(
-            Commands.runOnce(() -> setState(RobotState.IDLE))
-        );
+        // operatorController.rightBumper().onTrue(
+        //     Commands.runOnce(() -> setState(RobotState.IDLE))
+        // );
 
         //operatorController.y().onTrue(intake.pivotStart());
 
         //operatorController.a().onTrue(turret.zeroPivotCommand());
 
-        // turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
+        turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
 
-        // operatorController.x().onTrue(intake.runIntakeCommand());
-        // operatorController.x().toggleOnFalse(intake.endIntakeCommand());
+        operatorController.x().onTrue(intake.runIntakeCommand());
+        operatorController.x().toggleOnFalse(intake.endIntakeCommand());
 
-        // operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooter()).alongWith(spindexer.runSpindexerCommand()));
-        // operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
+        operatorController.y().onTrue(shooter.startShooterCommand());
 
-        // operatorController.a().onTrue(intake.pivotAgitateCommand());
-        // operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
+
+        //  if(shooter.getShooterCurrent()>20){
+        //     feeder.runFeeder();
+        //     spindexer.runSpindexer();
+        // }else{
+        //     feeder.stopFeeder();
+        //     spindexer.stopSpindexer();
+        // }
+
+        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooterCommand()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
+        operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
+
+        operatorController.a().onTrue(intake.pivotAgitateCommand());
+        operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
         
     }
 
@@ -236,8 +248,14 @@ public class RobotContainer {
 
                 intake.startIntake();
                 shooter.stopShooter();
-                turret.zeroPivot();
-                turret.zeroTurret();
+                
+                  if(pose.getY()>4 || pose.getY()<12.535){
+                    turret.passing(pose, alliance);
+                }else{
+                    turret.autoTrackingHub(alliance);
+                }
+                    
+
                 spindexer.stopSpindexer();
                 feeder.stopFeeder();
                 intake.pivotStopAgitate();
@@ -249,15 +267,25 @@ public class RobotContainer {
                 shooter.startShooter();
                 intake.stopIntake();
 
-                if(pose.getY()>4 || pose.getY()<12.535){
-                    turret.passing(pose, alliance);
+                // if(pose.getY()>4 || pose.getY()<12.535){
+                //     turret.passing(pose, alliance);
+                // }else{
+                //     turret.autoTrackingHub(alliance);
+                // }
+                
+
+                turret.autoTrackingHub(alliance);
+
+
+                if(shooter.isAtSpeed()){
+                    spindexer.runSpindexer();
+                    feeder.runFeeder();
                 }else{
-                    turret.autoTrackingHub(alliance);
+                    spindexer.stopSpindexer();
+                feeder.stopFeeder();
                 }
-                    
-                spindexer.runSpindexer();
-                feeder.runFeeder();
-                intake.pivotAgitate();
+                
+                intake.pivotStopAgitate();
 
                 break;
 

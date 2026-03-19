@@ -1,19 +1,25 @@
 package frc.robot.subsystems;
 
+import java.time.Period;
+
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FeederConstants;
 
 public class Feeder extends SubsystemBase {
     private final TalonFX feederMotor;
+    Shooter shooter;
 
-    public Feeder() {
+    public Feeder(Shooter shooter) {
         // Use a unique CAN ID (e.g., 18)
         feederMotor = new TalonFX(20);
+         this.shooter = shooter;
         configureMotors();
     }
 
@@ -37,6 +43,14 @@ public class Feeder extends SubsystemBase {
         }
     }
 
+   @Override
+    public void periodic() {
+        if(shooter.getShooterCurrent()>15){
+            feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
+        }else{
+             feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
+        }
+    }
     // --- Commands ---
 
     /**
@@ -44,9 +58,11 @@ public class Feeder extends SubsystemBase {
      */
     public Command runFeederCommand() {
         return this.runEnd(
-            () -> feederMotor.set(FeederConstants.FEEDER_FAST_SPEED),
-            () -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED)
-        );
+                        () -> feederMotor.set(FeederConstants.FEEDER_FAST_SPEED),
+                        () -> feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED)
+                    );
+        
+        
     }
 
     public void runFeeder(){
