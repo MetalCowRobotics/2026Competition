@@ -29,8 +29,8 @@ public class Intake extends SubsystemBase {
         
         intakeconfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        //intakePivotMotor.setPosition(2.68); //TODO: RESET THIS
-        intakePivotMotor.setPosition(0);
+        intakePivotMotor.setPosition(2.68);
+        //intakePivotMotor.setPosition(0);
 
         intakeconfig.Slot0.kP=20;
 

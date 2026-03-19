@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.434602409638554,
-        "y": 5.652301204819277
+        "x": 6.406833095577745,
+        "y": 0.6903566333808839
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.7372756361316255,
-        "y": 5.582450704653548
+        "x": 8.280927710843374,
+        "y": 0.26493975903614453
       },
       "isLocked": false,
-      "linkedName": "Shoot-Climb"
+      "linkedName": "In-Center"
     },
     {
       "anchor": {
-        "x": 0.9047228915662651,
-        "y": 5.969204819277109
+        "x": 7.766,
+        "y": 3.583
       },
       "prevControl": {
-        "x": 1.3460445140492316,
-        "y": 5.892517919756465
+        "x": 7.793247907018196,
+        "y": 3.982070860328249
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "At-Depot"
+      "linkedName": "Neutral5"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.32116182572614344,
+      "rotationDegrees": 90.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -41,14 +46,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 180.0
+    "velocity": 1.0,
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
-    "velocity": 0,
-    "rotation": 180.0
+    "velocity": 1.0,
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

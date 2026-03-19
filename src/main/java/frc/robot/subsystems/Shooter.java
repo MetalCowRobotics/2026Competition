@@ -105,8 +105,14 @@ public class Shooter extends SubsystemBase {
         shooterEnabled = !shooterEnabled;
     }
 
+    public double getSpeed()
+    {
+        return shooterMotor1.getVelocity().getValueAsDouble();
+    }
+
     public void stopShooter() {
         shooterMotor1.set(0);
+        shooterMotor2.set(0);
     }
 
     public Command shooterStop()
@@ -125,8 +131,8 @@ public class Shooter extends SubsystemBase {
     // }
 
     // Create a reusable velocity request
-private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
-    new com.ctre.phoenix6.controls.VelocityVoltage(20);
+// private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
+//     new com.ctre.phoenix6.controls.VelocityVoltage(20);
 
 // public Command startShooter() {
 //     double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS

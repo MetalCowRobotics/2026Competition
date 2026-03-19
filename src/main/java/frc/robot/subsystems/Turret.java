@@ -172,11 +172,12 @@ public Command autoTrackingHubCommand(char al) {
 
     public void zeroPivot(){
         PositionVoltage p = new PositionVoltage(0);
-        pivotMotor.setControl(p.withPosition(0));
+        double turretRotations = turretMotor.getPosition().getValueAsDouble();
+        pivotMotor.setControl(p.withPosition(turretRotations * 0.2147));
     }
 
     public Command zeroPivotCommand() {
-        return this.run(
+        return this.runOnce(
             () -> zeroPivot()
         );
     }
@@ -233,6 +234,7 @@ public void autoTrackingHub(char a){
     
     distToHub = robotPos.getTranslation().getDistance(desiredHub);
 
+    //double v = shooter.getSpeed(); 
     double v = SHOOTER_SPEED;
     double flightTime = distToHub / v; // Rough estimate of time-to-target
 

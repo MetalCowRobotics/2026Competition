@@ -5,24 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "L-Shoot-Begin"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shooting"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 6.0
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Home"
@@ -31,7 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "L-Pick-Depot"
+            "pathName": "Copy of middle path"
           }
         },
         {
@@ -41,9 +23,9 @@
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 3.0
+            "pathName": "Copy of middle path 2"
           }
         },
         {
@@ -55,7 +37,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "L-Depot-Shoot"
+            "pathName": "MiddlePath3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath4"
           }
         },
         {
@@ -67,13 +55,37 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 6.0
+            "waitTime": 5.0
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Home"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath5"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intaking"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath6"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath7"
           }
         }
       ]

@@ -13,19 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R-Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shooting"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 5.0
+            "pathName": "middle path"
           }
         },
         {
@@ -37,19 +25,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R-HP-Pick"
+            "pathName": "Middlepath2"
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 3.0
+            "name": "Home"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "R-HP-Shoot"
+            "pathName": "MiddlePath3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath4"
           }
         },
         {
@@ -62,6 +56,30 @@
           "type": "wait",
           "data": {
             "waitTime": 5.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Home"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath5"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intaking"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddlePath6"
           }
         },
         {

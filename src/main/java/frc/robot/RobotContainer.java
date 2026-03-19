@@ -22,7 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.constants.SpindexerConstants;
 import frc.robot.generated.TunerConstants;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.*;
@@ -186,6 +185,7 @@ public class RobotContainer {
         operatorController.x().toggleOnFalse(intake.endIntakeCommand());
 
         operatorController.y().onTrue(shooter.startShooterCommand());
+        operatorController.y().toggleOnFalse(shooter.shooterStop());
 
 
         //  if(shooter.getShooterCurrent()>20){
@@ -196,8 +196,12 @@ public class RobotContainer {
         //     spindexer.stopSpindexer();
         // }
 
-        operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooterCommand()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
-        operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
+        operatorController.rightBumper().onTrue(turret.zeroPivotCommand());
+        
+        operatorController.leftBumper().onTrue(turret.passingCommand(pose, alliance).withTimeout(1).andThen(shooter.startShooterCommand()));
+
+        // operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooterCommand()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
+        // operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
 
         operatorController.a().onTrue(intake.pivotAgitateCommand());
         operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());

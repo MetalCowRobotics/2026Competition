@@ -13,7 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R-Shoot"
+            "pathName": "L-Shoot-Begin"
           }
         },
         {
@@ -25,7 +25,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 5.0
+            "waitTime": 6.0
           }
         },
         {
@@ -37,7 +37,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R-HP-Pick"
+            "pathName": "L-Pick-Depot"
           }
         },
         {
@@ -47,9 +47,15 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Home"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "R-HP-Shoot"
+            "pathName": "L-Depot-Shoot"
           }
         },
         {
@@ -61,7 +67,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 5.0
+            "waitTime": 6.0
           }
         },
         {
