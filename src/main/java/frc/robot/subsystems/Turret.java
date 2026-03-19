@@ -122,6 +122,7 @@ public Command autoTrackingHubCommand(char al) {
             () -> autoTrackingHub(al)
         );
     }
+    
 
     public Command passingCommand(Pose2d robotPose, char alliance) {
         Translation2d Blue_Left_Target = new Translation2d(2,1);
@@ -150,7 +151,33 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
 
-    private void zeroPivot(){
+    public void passing(Pose2d robotPose, char alliance) {
+        Translation2d Blue_Left_Target = new Translation2d(2,1);
+        Translation2d Blue_Right_Target = new Translation2d(2,7);
+        Translation2d Red_Left_Target = new Translation2d(14.535,7);
+        Translation2d Red_Right_Target = new Translation2d(14.535,1);
+
+        Translation2d finalTarget; 
+
+        if(alliance == 'R'){
+            if(robotPose.getX()>4){
+                finalTarget = Red_Left_Target;
+            }else{
+                finalTarget = Red_Right_Target;
+            }
+        }else{
+            if(robotPose.getX()>4){
+                finalTarget = Blue_Right_Target;
+            }else{
+                finalTarget = Blue_Left_Target;
+            }
+        }
+
+        autoTrackingPass(finalTarget);
+        
+    }
+
+    public void zeroPivot(){
         PositionVoltage p = new PositionVoltage(0);
         pivotMotor.setControl(p.withPosition(0));
     }
@@ -161,7 +188,7 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
 
-    private void zeroTurret(){
+    public void zeroTurret(){
         PositionVoltage p = new PositionVoltage(0);
         turretMotor.setControl(p.withPosition(0));
     }
@@ -190,7 +217,7 @@ public Command autoTrackingHubCommand(char al) {
     }
     
    
-private void autoTrackingHub(char a){
+public void autoTrackingHub(char a){
     Pose2d robotPos = drivetrain.getState().Pose;
     
 
@@ -283,7 +310,7 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 }
 
-private void autoTrackingPass(Translation2d desiredTarget){
+public void autoTrackingPass(Translation2d desiredTarget){
     Pose2d robotPos = drivetrain.getState().Pose;
     
 

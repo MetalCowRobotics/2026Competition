@@ -63,11 +63,22 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    public void startIntake() {
+    intakeMotor.set(IntakeConstants.INTAKE_SPEED);
+}
+
+public void stopIntake() {
+    intakeMotor.set(IntakeConstants.INTAKE_IDLE_SPEED);
+}
+
+
        public Command startIntakeCommand() {
         return this.runOnce(
             () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED)
         );
     }
+
+
 
      public Command startSlowIntakeCommand() {
         return this.runOnce(

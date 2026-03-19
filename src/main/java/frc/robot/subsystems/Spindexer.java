@@ -48,6 +48,11 @@ public class Spindexer extends SubsystemBase {
         );
     }
 
+     public void runSpindexer() {
+        spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED); // 50% power is usually enough for indexing
+        
+    }
+
     /**
      * Runs the spindexer in reverse to clear jams.
      */
@@ -60,5 +65,9 @@ public class Spindexer extends SubsystemBase {
 
     public Command stopSpindexerCommand() {
         return this.runOnce(() -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED));
+    }
+
+    public void stopSpindexer(){
+        spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
     }
 }
