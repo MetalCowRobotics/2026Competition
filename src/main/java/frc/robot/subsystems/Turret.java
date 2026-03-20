@@ -37,7 +37,10 @@ public class Turret extends SubsystemBase {
     // Physics Constants (Standardized to Feet for the formula)
     private final double TARGET_HEIGHT_DIFF = 1.27;
     private final double SHOOTER_SPEED = 9.144;
+
     private final double GRAVITY = 9.81;
+
+    public char alliance;
 
     private final double SHOOTER_CURRENT_TURRET_FF = -0.35;
     private final double SHOOTER_CURRENT_PIVOT_FF  = 0;
@@ -59,10 +62,11 @@ public class Turret extends SubsystemBase {
         Units.inchesToMeters(158.845)
     );
 
-    public Turret(CommandSwerveDrivetrain drivetrain, Shooter shooter) {
+    public Turret(CommandSwerveDrivetrain drivetrain, Shooter shooter, char alliance) {
         this.turretMotor = new TalonFX(30);
         this.pivotMotor = new TalonFX(14);
         this.drivetrain = drivetrain;
+        this.alliance = alliance;
         this.shooter = shooter;
 
         configureMotors();
@@ -87,8 +91,9 @@ public class Turret extends SubsystemBase {
         pivotConfig.CurrentLimits.StatorCurrentLimit = 45;
         pivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         pivotConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
-        pivotConfig.Slot0.kP = 100;
-        pivotConfig.Slot0.kV = 250;
+        pivotConfig.Slot0.kP = 150;
+        pivotConfig.Slot0.kV = 20;
+        pivotConfig.Slot0.kD = 3;
 
         // Software Limit Switches for Pivot (Safety logic)
         // Converts 0-45 degrees (scaled) into motor rotations
@@ -125,6 +130,10 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
     
+
+    public void switchTrenchMode(){
+        isUnderTrench = !isUnderTrench;
+    }
 
     public Command passingCommand(Pose2d robotPose, char alliance) {
         Translation2d Blue_Left_Target = new Translation2d(2,1);
@@ -246,6 +255,12 @@ public Command autoTrackingHubCommand(char al) {
             () -> addToPivot()
         );
     }
+
+    public Command switchTurretCommand(){
+        return this.runOnce(
+            () -> switchTrenchMode()
+        );
+    }
    
    
 public void autoTrackingHub(char a){
@@ -307,7 +322,6 @@ public void autoTrackingHub(char a){
         leadingTarget.getY() - robotPos.getY(), 
         leadingTarget.getX() - robotPos.getX()
     );
-    
     turretTargetDeg = Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees()+15;
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
@@ -317,11 +331,17 @@ public void autoTrackingHub(char a){
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
         
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
-    targetPitchDegrees = 25;
+
+    if(isUnderTrench){
+        targetPitchDegrees = 42;
+    }else{
+        targetPitchDegrees = 30;
+    }
+    
     
     //MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
     targetPitchDegrees = 42-targetPitchDegrees;
-    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 45);
+    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 1.6; //COME HERE
@@ -340,8 +360,17 @@ public void periodic() {
     // SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
     SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
-    
-    //autoTrackingHub('R');
+
+
+        if(this.alliance == 'B'){
+            if(drivetrain.getState().Pose.getX()<5){
+                autoTrackingHub(this.alliance);
+            }
+        }else{
+            if(drivetrain.getState().Pose.getX()>13){
+                autoTrackingHub(this.alliance);
+            }
+        }
 }
 
 public void autoTrackingPass(Translation2d desiredTarget){

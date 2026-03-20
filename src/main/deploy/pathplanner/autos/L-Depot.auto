@@ -11,75 +11,57 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Switch Down"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "middle path"
+            "pathName": "L-Shoot-Begin"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Intaking"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Middlepath2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop Intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath3"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath4"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddlePath5.1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Switch Down"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shooting"
+            "name": "Shoot"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 5.0
+            "waitTime": 6.0
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Stop Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L-Pick-Depot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L-Depot-Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         }
       ]

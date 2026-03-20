@@ -8,7 +8,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
@@ -28,11 +33,12 @@ public class Intake extends SubsystemBase {
         intakeconfig.Feedback.SensorToMechanismRatio = 1; 
         
         intakeconfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        intakeconfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 1.0;
 
         intakePivotMotor.setPosition(2.68);
         //intakePivotMotor.setPosition(0);
 
-        intakeconfig.Slot0.kP=20; //TODO: Increase p
+        intakeconfig.Slot0.kP=50; //TODO: Increase p
 
         // Retry logic to ensure intakeconfig is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -94,10 +100,17 @@ public Command stopIntakeCommand(){
 
     public void pivotAgitate(){
 
+                intakeMotor.set(-0.5);
+
+
          //intakePivotMotor.setControl(new PositionVoltage(1));
-        if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1));
-        if(intakePivotMotor.getPosition().getValueAsDouble() > 0.9) intakePivotMotor.setControl(new PositionVoltage(0));
-        intakeMotor.set(-0.3);
+        // if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1.9));
+        // if(intakePivotMotor.getPosition().getValueAsDouble() > 1.7)
+        // {
+        
+            
+        //} 
+
     }
 
     public Command pivotStart() {
@@ -126,14 +139,35 @@ public Command stopIntakeCommand(){
 
     public Command pivotAgitateCommand()
     {
-        return this.run(
-            () -> pivotAgitate()
+        
+
+       return new RepeatCommand(
+
+           new ParallelCommandGroup(
+
+            runOnce(() -> intakeMotor.set(-0.3)),
+           
+            new SequentialCommandGroup(
+                
+                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(0))),
+                new WaitCommand(0.45),
+
+                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(1.9))),
+                new WaitCommand(0.45)
+            )
+           )
+        );
+    }
+
+    public Command pivotUp(){
+        return this.runOnce(
+            () -> intakePivotMotor.setControl(new PositionVoltage(1.9))
         );
     }
 
     public Command pivotStopAgitateCommand()
     {
-        return this.run(
+        return this.runOnce(
             () -> pivotStopAgitate()
         );
     }

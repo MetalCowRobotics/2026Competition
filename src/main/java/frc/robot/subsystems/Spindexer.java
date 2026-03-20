@@ -15,7 +15,7 @@ public class Spindexer extends SubsystemBase {
     public Spindexer(Shooter shooter) {
         // Use a different CAN ID than your intake (e.g., 17)
         spindexerMotor = new TalonFX(31);
-         this.shooter = shooter;
+        this.shooter = shooter;
         configureMotors();
     }
 
@@ -25,6 +25,8 @@ public class Spindexer extends SubsystemBase {
         // Adjust ratio based on your gearbox (e.g., 10:1)
         config.Feedback.SensorToMechanismRatio = 1; 
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.CurrentLimits.SupplyCurrentLimit = 80;
+        config.CurrentLimits.StatorCurrentLimit = 80;
 
         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
@@ -78,7 +80,7 @@ public class Spindexer extends SubsystemBase {
 
     @Override
     public void periodic(){
-        if(shooter.getSpeed()>70){
+        if(shooter.getSpeed()>60){
             spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED);
         }else{
             spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);

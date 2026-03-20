@@ -13,6 +13,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.revrobotics.ColorSensorV3.Register;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -70,10 +71,16 @@ public class RobotContainer {
     private final SendableChooser<String> autoLocationChooser;
 
     public RobotContainer() {
+          if(DriverStation.getAlliance().get() == Alliance.Red)
+        {
+            alliance = 'R';
+        }
+        else alliance = 'B';
+
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
         shooter = new Shooter();
-        turret = new Turret(drivetrain,shooter);        
+        turret = new Turret(drivetrain,shooter,alliance);        
         intake = new Intake();
         spindexer = new Spindexer(shooter);
         feeder = new Feeder(shooter);
@@ -86,12 +93,7 @@ public class RobotContainer {
         pose = drivetrain.getState().Pose;
         cSpeeds = drivetrain.getState().Speeds;
         
-        if(DriverStation.getAlliance().get() == Alliance.Red)
-        {
-            alliance = 'R';
-        }
-        else alliance = 'B';
-        
+    
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
         autoLocationChooser = new SendableChooser<>();
@@ -102,13 +104,17 @@ public class RobotContainer {
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
         // NamedCommands.registerCommand("Shoot", feeder.runFeederCommand().alongWith(shooter.startShooter()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
-        // NamedCommands.registerCommand("Stop Shoot", feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()).alongWith(intake.pivotStopAgitateCommand()));
-        // NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
-        // NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
+        NamedCommands.registerCommand("Stop Shoot", shooter.shooterStop());
+        NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
+        NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
+        NamedCommands.registerCommand("Switch Down", turret.switchTurretCommand());
 
-        NamedCommands.registerCommand("Shooting", setStateCommand(RobotState.SHOOTING));
-        NamedCommands.registerCommand("Home", setStateCommand(RobotState.IDLE));
-        NamedCommands.registerCommand("Intaking", setStateCommand(RobotState.INTAKING));
+        NamedCommands.registerCommand("Shoot", shooter.startShooterCommand());
+        NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
+
+        // NamedCommands.registerCommand("Shooting", setStateCommand(RobotState.SHOOTING));
+        // NamedCommands.registerCommand("Home", setStateCommand(RobotState.IDLE));
+        // NamedCommands.registerCommand("Intaking", setStateCommand(RobotState.INTAKING));
        
 
         configureBindings();
@@ -179,12 +185,13 @@ public class RobotContainer {
 
         //operatorController.a().onTrue(turret.zeroPivotCommand());
 
-        turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
+       // turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
 
         operatorController.x().onTrue(intake.runIntakeCommand());
         operatorController.x().toggleOnFalse(intake.endIntakeCommand());
 
         operatorController.y().onTrue(shooter.startShooterCommand());
+    
         operatorController.y().toggleOnFalse(shooter.shooterStop());
 
 
@@ -204,10 +211,17 @@ public class RobotContainer {
         // operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooterCommand()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
         // operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
 
-        operatorController.a().onTrue(intake.pivotAgitateCommand());
+        operatorController.a().whileTrue(intake.pivotAgitateCommand());
         operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
 
-        operatorController.b().whileTrue(turret.zeroPivotCommand());
+
+        operatorController.rightTrigger().onTrue(turret.switchTurretCommand());
+
+        operatorController.leftTrigger().onTrue(intake.reverseIntakeCommand());
+        operatorController.leftTrigger().onFalse(intake.stopIntakeCommand());
+
+        joystick.a().onTrue(intake.pivotUp());
+        //operatorController.rightTrigger().onFalse(turret.switchTurretCommand());
         //operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance));
         
     }
