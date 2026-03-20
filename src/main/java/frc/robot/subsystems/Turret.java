@@ -378,16 +378,12 @@ public void autoTrackingPass(Translation2d desiredTarget){
     //turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
 
-<<<<<<< Updated upstream
-    targetPitchDegrees = 20; //TODO: 30 is just random angle
-=======
     //targetPitchDegrees = 30; //TODO: 30 is just random angle
 
     double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
     targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
     targetPitchDegrees = 42-targetPitchDegrees;
     targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
->>>>>>> Stashed changes
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
