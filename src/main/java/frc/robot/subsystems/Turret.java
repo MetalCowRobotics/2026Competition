@@ -34,7 +34,7 @@ public class Turret extends SubsystemBase {
     
     // Physics Constants (Standardized to Feet for the formula)
     private final double TARGET_HEIGHT_DIFF = 1.27;
-    private final double SHOOTER_SPEED = 10.77;
+    private final double SHOOTER_SPEED = 9.144;
     private final double GRAVITY = 9.81;
 
     private final double SHOOTER_CURRENT_TURRET_FF = -0.4;
@@ -75,6 +75,7 @@ public class Turret extends SubsystemBase {
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         turretConfig.Slot0.kV = 50;
         turretConfig.Slot0.kI = 0.001;
+        turretMotor.setPosition(36);
 
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
@@ -108,6 +109,12 @@ public class Turret extends SubsystemBase {
 public void zeroMotors() {
         turretMotor.setPosition(0);
         pivotMotor.setPosition(0);
+    }
+
+    public void zeroOnlyPivot()
+    {
+        double turretRotations = turretMotor.getPosition().getValueAsDouble();
+        pivotMotor.setPosition(turretRotations * .2147);
     }
 
 public Command autoTrackingHubCommand(char al) {
@@ -172,8 +179,7 @@ public Command autoTrackingHubCommand(char al) {
 
     public void zeroPivot(){
         PositionVoltage p = new PositionVoltage(0);
-        double turretRotations = turretMotor.getPosition().getValueAsDouble();
-        pivotMotor.setControl(p.withPosition(turretRotations * 0.2147));
+        pivotMotor.setControl(p.withPosition(0));
     }
 
     public Command zeroPivotCommand() {
@@ -181,6 +187,15 @@ public Command autoTrackingHubCommand(char al) {
             () -> zeroPivot()
         );
     }
+
+    public Command homePivotCommand() {
+    return this.run(() -> pivotMotor.set(-0.1))
+        .withTimeout(0.5)                      
+        .andThen(() -> {
+            pivotMotor.set(0);             
+            zeroOnlyPivot();                       
+        }); 
+}
 
     public void zeroTurret(){
         PositionVoltage p = new PositionVoltage(0);
@@ -281,7 +296,7 @@ public void autoTrackingHub(char a){
     targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
 
     //TODO: Play around with 4
-    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;
+    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 1.6;
   
     pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
 }
@@ -295,7 +310,7 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
     // SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
-    SmartDashboard.putNumber("Turret/Current_Turret_Deg", currentTurretAngle);
+    SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 }
 
@@ -363,7 +378,16 @@ public void autoTrackingPass(Translation2d desiredTarget){
     //turretMotor.setControl(new PositionVoltage(5));
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
 
+<<<<<<< Updated upstream
     targetPitchDegrees = 20; //TODO: 30 is just random angle
+=======
+    //targetPitchDegrees = 30; //TODO: 30 is just random angle
+
+    double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
+    targetPitchDegrees = MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
+    targetPitchDegrees = 42-targetPitchDegrees;
+    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 1, 12);
+>>>>>>> Stashed changes
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  * 4;

@@ -179,8 +179,6 @@ public class RobotContainer {
 
         //operatorController.a().onTrue(turret.zeroPivotCommand());
 
-        turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
-
         operatorController.x().onTrue(intake.runIntakeCommand());
         operatorController.x().toggleOnFalse(intake.endIntakeCommand());
 
@@ -196,7 +194,8 @@ public class RobotContainer {
         //     spindexer.stopSpindexer();
         // }
 
-        operatorController.rightBumper().onTrue(turret.zeroPivotCommand());
+        operatorController.rightBumper().onTrue(turret.homePivotCommand());
+        operatorController.rightBumper().toggleOnFalse(turret.autoTrackingHubCommand(alliance));
         
         operatorController.leftBumper().onTrue(turret.passingCommand(pose, alliance).withTimeout(1).andThen(shooter.startShooterCommand()));
 
@@ -205,6 +204,9 @@ public class RobotContainer {
 
         operatorController.a().onTrue(intake.pivotAgitateCommand());
         operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
+
+        operatorController.b().whileTrue(turret.zeroPivotCommand());
+        operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance));
         
     }
 

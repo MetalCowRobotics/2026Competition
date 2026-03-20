@@ -45,12 +45,12 @@ public class Feeder extends SubsystemBase {
 
    @Override
     public void periodic() {
-        if(shooter.getSpeed()>95){
+        if(shooter.getSpeed()>70){
             feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
         }else{
              feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
         }
-    }
+    } 
     // --- Commands ---
 
     /**
