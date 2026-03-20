@@ -71,6 +71,12 @@ public void stopIntake() {
     intakeMotor.set(IntakeConstants.INTAKE_IDLE_SPEED);
 }
 
+public Command stopIntakeCommand(){
+    return this.runOnce(
+        () -> stopIntake()
+    );
+}
+
 
        public Command startIntakeCommand() {
         return this.runOnce(
