@@ -44,10 +44,10 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 30; // Limit motor heat TODO: Change 
+    config.CurrentLimits.StatorCurrentLimit = 25; // Limit motor heat TODO: Change 
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 30; // Limit battery draw TODO: Change
+    config.CurrentLimits.SupplyCurrentLimit = 25; // Limit battery draw TODO: Change
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -69,10 +69,10 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 0.12; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 30.0; // Limit motor heat TODO:Change back
+    config.CurrentLimits.StatorCurrentLimit = 25.0; // Limit motor heat TODO:Change back
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 30.0; // Limit battery draw TODO:Change back
+    config.CurrentLimits.SupplyCurrentLimit = 25.0; // Limit battery draw TODO:Change back
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;

@@ -272,7 +272,7 @@ public class RobotContainer {
                 shooter.stopShooter();
                 
                   if(pose.getY()>4 || pose.getY()<12.535){
-                    turret.passing(pose, alliance);
+                    turret.passingCommand(pose, alliance);
                 }else{
                     turret.autoTrackingHub(alliance);
                 }
