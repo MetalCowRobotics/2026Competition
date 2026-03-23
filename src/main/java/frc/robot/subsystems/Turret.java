@@ -155,7 +155,7 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
 
-    public void passing(Pose2d robotPose, char alliance) {
+    public Translation2d passing(Pose2d robotPose, char alliance) {
         Translation2d Blue_Left_Target = new Translation2d(2,1);
         Translation2d Blue_Right_Target = new Translation2d(2,7);
         Translation2d Red_Left_Target = new Translation2d(14.535,7);
@@ -177,7 +177,9 @@ public Command autoTrackingHubCommand(char al) {
             }
         }
 
-        autoTrackingPass(finalTarget);
+        return finalTarget;
+
+        // autoTrackingPass(finalTarget);
         
     }
 
@@ -349,11 +351,12 @@ public void autoTrackingHub(char a){
     //MathUtil.clamp(targetPitchDegrees, 0, 45);
 
     //TODO: Play around with 4
-    double pitchOnlyRotations = (targetPitchDegrees/360 )  ;//* 1.6; //COME HERE
+    double pitchOnlyRotations = (targetPitchDegrees/360 ) * 0.5  ;//* 1.6; //COME HERE
 
     double turretTargetRotations = turretTargetDeg/360; // TODO: THIS IS COMPENSATING EARLY
   
-    pivotMotor.setControl(request.withPosition(turretTargetRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
+    pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
+
 }
 
 
@@ -385,8 +388,11 @@ public void periodic() {
 
 
         if(this.alliance == 'B'){
-            if(drivetrain.getState().Pose.getX()<5){
+            if(drivetrain.getState().Pose.getX()<3.6){
                 autoTrackingHub(this.alliance);
+            }else if(drivetrain.getState().Pose.getX()>6){
+                //logic for passing
+                autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
             }
             else{
                 pivotMotor.setControl(request.withPosition(0));
@@ -397,18 +403,14 @@ public void periodic() {
             
                 }
 
-                // if(turretMotor.getPosition().getValueAsDouble() <0.1){
-                //     turretMotor.setPosition(0);
-            
-                // }
-
-                
-    
             }
             //sus add an else with command?
         }else{
-            if(drivetrain.getState().Pose.getX()>13){
+            if(drivetrain.getState().Pose.getX()>13.5){
                 autoTrackingHub(this.alliance);
+            }else if(drivetrain.getState().Pose.getX()<10.4){
+                //logic for passing
+                autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
             }else{
                 pivotMotor.setControl(request.withPosition(0));
                 turretMotor.setControl(request.withPosition(0));
@@ -417,11 +419,6 @@ public void periodic() {
                     pivotMotor.setPosition(0);
             
                 }
-
-                // if(turretMotor.getPosition().getValueAsDouble() <0.1){
-                //     turretMotor.setPosition(0);
-            
-                // }
             }
             //same here sus add an else with command?
         }
@@ -501,7 +498,7 @@ public void autoTrackingPass(Translation2d desiredTarget){
 
     double turretTargetRotations = turretTargetDeg/360; // TODO: THIS IS COMPENSATING EARLY
   
-    pivotMotor.setControl(request.withPosition(turretTargetRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
+    pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
 
 //     // --- 3. PROJECTILE MATH (Using the Leading Target) ---
 //     double distanceToLead = robotPos.getTranslation().getDistance(leadingTarget);

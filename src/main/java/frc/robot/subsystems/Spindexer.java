@@ -25,8 +25,8 @@ public class Spindexer extends SubsystemBase {
         // Adjust ratio based on your gearbox (e.g., 10:1)
         config.Feedback.SensorToMechanismRatio = 1; 
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        config.CurrentLimits.SupplyCurrentLimit = 80;
-        config.CurrentLimits.StatorCurrentLimit = 80;
+        config.CurrentLimits.SupplyCurrentLimit = 95;
+        config.CurrentLimits.StatorCurrentLimit = 100;
 
         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
