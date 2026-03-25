@@ -23,6 +23,7 @@ public class Turret extends SubsystemBase {
     private final TalonFX pivotMotor;
     private final CommandSwerveDrivetrain drivetrain;
     private final Shooter shooter;
+    private final PivotLookup pivotLookup;
 
     // Control Constants
     private final double KP_TURRET = 0.01; 
@@ -42,7 +43,7 @@ public class Turret extends SubsystemBase {
 
     public char alliance;
 
-    private final double SHOOTER_CURRENT_TURRET_FF = -0.35;
+    private final double SHOOTER_CURRENT_TURRET_FF = -0.2;
     private final double SHOOTER_CURRENT_PIVOT_FF  = 0;
 
         double targetPitchDegrees;
@@ -68,6 +69,7 @@ public class Turret extends SubsystemBase {
         this.drivetrain = drivetrain;
         this.alliance = alliance;
         this.shooter = shooter;
+        pivotLookup = new PivotLookup();
 
         configureMotors();
     }
@@ -117,9 +119,9 @@ public void zeroMotors() {
         pivotMotor.setPosition(turretRotations * .2147);
     }
 
-public Command autoTrackingHubCommand(char al) {
+public Command autoTrackingHubCommand(char al, double p) {
         return this.run(
-            () -> autoTrackingHub(al)
+            () -> autoTrackingHub(al, p)
         );
     }
     
@@ -195,7 +197,7 @@ public Command autoTrackingHubCommand(char al) {
     }
 
     public Command homePivotCommand() {
-    return this.run(() -> pivotMotor.set(0.1))
+    return this.run(() -> pivotMotor.set(-0.1))
         .withTimeout(0.5)                      
         .andThen(() -> {
             pivotMotor.set(0);             
@@ -258,7 +260,7 @@ public Command autoTrackingHubCommand(char al) {
     }
    
    
-public void autoTrackingHub(char a){
+public void autoTrackingHub(char a, double pitch){
     Pose2d robotPos = drivetrain.getState().Pose;
     
 
@@ -316,47 +318,67 @@ public void autoTrackingHub(char a){
         leadingTarget.getY() - robotPos.getY(), 
         leadingTarget.getX() - robotPos.getX()
     );
+
     turretTargetDeg = MathUtil.inputModulus(
     Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + 15,
     0, 360
     );
+
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
     double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
     turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * KP_TURRET);
 
 
+    // --- 5. PIVOT CONTROL (Using Lookup Table) ---
 
+    // 1. Get distance in meters (already calculated earlier)
+    double distanceMeters = distToHub;
+
+    // 2. Get interpolated pitch angle
+    targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+
+    // Optional safety clamp (recommended)
+    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
+
+    // 3. Convert degrees → rotations
+    double pitchOnlyRotations = targetPitchDegrees / 360.0;
+
+    double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
+
+    // 4. Command pivot motor
+    pivotMotor.setControl(request.withPosition(pitchOnlyRotations + (turretCurrentRotations * 0.2088)));
 
     // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
         
-    double angleRad = Math.atan((v2 + Math.sqrt(discriminant)) / (g * distanceToLead));
-    // double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
+    // double angleRad = Math.atan((v2 + Math.sqrt(discriminant)) / (g * distanceToLead));
+    // // double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
 
   
-    double testAngleDeg = 90-Math.toDegrees(angleRad);
+    // //double testAngleDeg = 90-Math.toDegrees(angleRad);
 
-    SmartDashboard.putNumber("Target/Pitch_Angle_Deg", testAngleDeg);
-    double angleDeg = MathUtil.clamp(testAngleDeg, 0, 45);
-    // targetPitchDegrees = 42-targetPitchDegrees;
-    // targetPitchDegrees = angleRad;
+    // //SmartDashboard.putNumber("Target/Pitch_Angle_Deg", testAngleDeg);
+    // // double angleDeg = MathUtil.clamp(Math.toDegrees(angleRad), 45, 90);
+    // // targetPitchDegrees = 90-angleDeg;
+    // // targetPitchDegrees = angleRad;
 
-      if(isUnderTrench){
-        targetPitchDegrees = 0;
-    }else{
-        targetPitchDegrees = 25;
-    }
+    // //   if(isUnderTrench){
+    // //     targetPitchDegrees = 0;
+    // // }else{
+    // //     targetPitchDegrees = 20;
+    // // }
     
+    // targetPitchDegrees = pitch;
     
-    //MathUtil.clamp(targetPitchDegrees, 0, 45);
+    // //MathUtil.clamp(targetPitchDegrees, 0, 45);
 
-    //TODO: Play around with 4
-    double pitchOnlyRotations = (targetPitchDegrees/360 ) * 0.5  ;//* 1.6; //COME HERE
-
-    double turretTargetRotations = turretTargetDeg/360; // TODO: THIS IS COMPENSATING EARLY
-  
-    pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
-
+    // //TODO: Play around with 4
+    // double pitchOnlyRotations = (targetPitchDegrees/360 )  ;//* 1.6; //COME HERE
+ 
+    // double turretTargetRotations = turretTargetDeg/360; // TODO: THIS IS COMPENSATING EARLY
+    
+    // //pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations));
+    // pivotMotor.setControl(request.withPosition(pitchOnlyRotations));
 }
 
 
@@ -365,11 +387,11 @@ public void periodic() {
    // --- 1. GET ROBOT STATE ---
     // SmartDashboard.putNumber("Turret/Dist_To_Lead", distanceToLead);
     // SmartDashboard.putNumber("Turret/Pivot_Target_Rotations", pitchOnlyRotations);
-    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble()*360);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
     
     // SmartDashboard.putNumber("Turret/Combined_Target_Pitch_Deg", combinedPivotTargetDeg);
-    SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble()*360);
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 
 
@@ -387,41 +409,41 @@ public void periodic() {
 
 
 
-        if(this.alliance == 'B'){
-            if(drivetrain.getState().Pose.getX()<3.6){
-                autoTrackingHub(this.alliance);
-            }else if(drivetrain.getState().Pose.getX()>6){
-                //logic for passing
-                autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
-            }
-            else{
-                pivotMotor.setControl(request.withPosition(0));
-                turretMotor.setControl(request.withPosition(0));
+        // if(this.alliance == 'B'){
+        //     if(drivetrain.getState().Pose.getX()<3.6){
+        //         autoTrackingHub(this.alliance);
+        //     }else if(drivetrain.getState().Pose.getX()>6){
+        //         //logic for passing
+        //         autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
+        //     }
+        //     else{
+        //         pivotMotor.setControl(request.withPosition(0));
+        //         // turretMotor.setControl(request.withPosition(0));
 
-                if(pivotMotor.getPosition().getValueAsDouble() <0.1){
-                    pivotMotor.setPosition(0);
+        //         if(pivotMotor.getPosition().getValueAsDouble() <0.1){
+        //             pivotMotor.setPosition(0);
             
-                }
+        //         }
 
-            }
-            //sus add an else with command?
-        }else{
-            if(drivetrain.getState().Pose.getX()>13.5){
-                autoTrackingHub(this.alliance);
-            }else if(drivetrain.getState().Pose.getX()<10.4){
-                //logic for passing
-                autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
-            }else{
-                pivotMotor.setControl(request.withPosition(0));
-                turretMotor.setControl(request.withPosition(0));
+        //     }
+        //     //sus add an else with command?
+        // }else{
+        //     if(drivetrain.getState().Pose.getX()>13.5){
+        //         autoTrackingHub(this.alliance);
+        //     }else if(drivetrain.getState().Pose.getX()<10.4){
+        //         //logic for passing
+        //         autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
+        //     }else{
+        //         pivotMotor.setControl(request.withPosition(0));
+        //         //turretMotor.setControl(request.withPosition(0));
 
-                if(pivotMotor.getPosition().getValueAsDouble() <0.1){
-                    pivotMotor.setPosition(0);
+        //         if(pivotMotor.getPosition().getValueAsDouble() <0.1){
+        //             pivotMotor.setPosition(0);
             
-                }
-            }
-            //same here sus add an else with command?
-        }
+        //         }
+        //     }
+        //     //same here sus add an else with command?
+        // }
 }
 
 public void autoTrackingPass(Translation2d desiredTarget){
@@ -472,7 +494,7 @@ public void autoTrackingPass(Translation2d desiredTarget){
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
     double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
-    turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * KP_TURRET);
+    //turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * KP_TURRET);
 
 
 
@@ -482,16 +504,16 @@ public void autoTrackingPass(Translation2d desiredTarget){
     //------ double angleRad = Math.atan((v2 + Math.sqrt(discriminant)) / (g * distanceToLead));
     // double angleRad = Math.atan((v2 - Math.sqrt(discriminant)) / (g * distanceToLead));
 
-    if(isUnderTrench){
-        targetPitchDegrees = 0;
-    }else{
-        targetPitchDegrees = 35;
-    }
+    // if(isUnderTrench){
+    //     targetPitchDegrees = 0;
+    // }else{
+    //     targetPitchDegrees = 35;
+    // }
     
     
     //MathUtil.clamp(Math.toDegrees(angleRad), 2.0, 40.0);
     // targetPitchDegrees = 42-targetPitchDegrees;
-    targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
+    // targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
     //TODO: Play around with 4
     double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  ;//* 1.6; //COME HERE

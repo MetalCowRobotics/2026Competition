@@ -57,6 +57,8 @@ public class RobotContainer {
     public char alliance;
     public ChassisSpeeds cSpeeds;
 
+    private double pitch = 20;
+
     private enum RobotState {
         IDLE,
         INTAKING,
@@ -86,8 +88,6 @@ public class RobotContainer {
         feeder = new Feeder(shooter);
 
         currentState =  RobotState.IDLE;
-
-  
 
 
         pose = drivetrain.getState().Pose;
@@ -185,7 +185,8 @@ public class RobotContainer {
 
         //operatorController.a().onTrue(turret.zeroPivotCommand());
 
-       // turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
+        operatorController.a().whileTrue(turret.autoTrackingHubCommand(alliance, 30));
+        operatorController.a().whileFalse(turret.autoTrackingHubCommand(alliance, 35));
 
         operatorController.x().onTrue(intake.runIntakeCommand());
         operatorController.x().toggleOnFalse(intake.endIntakeCommand());
@@ -203,6 +204,12 @@ public class RobotContainer {
         //     spindexer.stopSpindexer();
         // }
 
+        // operatorController.a().whileFalse(turret.autoTrackingHubCommand(alliance, pitch));
+        
+        // if(operatorController.a().getAsBoolean()) pitch += 2;
+
+        turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance, 1));
+
         operatorController.rightBumper().onTrue(turret.homePivotCommand());
          //operatorController.rightBumper().toggleOnFalse(turret.autoTrackingHubCommand(alliance));
         
@@ -211,8 +218,8 @@ public class RobotContainer {
         // operatorController.y().onTrue(feeder.runFeederCommand().alongWith(shooter.startShooterCommand()).alongWith(spindexer.runSpindexerCommand()).alongWith(intake.pivotAgitateCommand()));
         // operatorController.y().toggleOnFalse(feeder.stopFeederCommand().alongWith(shooter.shooterStop()).alongWith(spindexer.stopSpindexerCommand()));
 
-        operatorController.a().whileTrue(intake.pivotAgitateCommand());
-        operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
+        // operatorController.a().whileTrue(intake.pivotAgitateCommand());
+        // operatorController.a().toggleOnFalse(intake.pivotStopAgitateCommand());
 
 
         operatorController.rightTrigger().onTrue(turret.switchTurretCommand());
@@ -245,85 +252,85 @@ public class RobotContainer {
 
     }
 
-    private Command stateMachineCommand() {
+//     private Command stateMachineCommand() {
 
-    return Commands.run(() -> {
+//     return Commands.run(() -> {
 
-        SmartDashboard.putString("Robot State", currentState.name());
+//         SmartDashboard.putString("Robot State", currentState.name());
 
-        switch (this.currentState) {
+//         switch (this.currentState) {
 
-            case IDLE:
+//             case IDLE:
 
-                intake.stopIntake();
-                shooter.stopShooter();
-                turret.zeroPivot();
-                turret.zeroTurret();
-                spindexer.stopSpindexer();
-                feeder.stopFeeder();
-                intake.pivotStopAgitate();
+//                 intake.stopIntake();
+//                 shooter.stopShooter();
+//                 turret.zeroPivot();
+//                 turret.zeroTurret();
+//                 spindexer.stopSpindexer();
+//                 feeder.stopFeeder();
+//                 intake.pivotStopAgitate();
 
-                break;
+//                 break;
 
 
-            case INTAKING:
+//             case INTAKING:
 
-                intake.startIntake();
-                shooter.stopShooter();
+//                 intake.startIntake();
+//                 shooter.stopShooter();
                 
-                  if(pose.getY()>4 || pose.getY()<12.535){
-                    turret.passingCommand(pose, alliance);
-                }else{
-                    turret.autoTrackingHub(alliance);
-                }
+//                   if(pose.getY()>4 || pose.getY()<12.535){
+//                     turret.passingCommand(pose, alliance);
+//                 }else{
+//                     turret.autoTrackingHub(alliance);
+//                 }
                     
 
-                spindexer.stopSpindexer();
-                feeder.stopFeeder();
-                intake.pivotStopAgitate();
+//                 spindexer.stopSpindexer();
+//                 feeder.stopFeeder();
+//                 intake.pivotStopAgitate();
 
 
-                break;
+//                 break;
 
-            case SHOOTING:
-                shooter.startShooter();
-                intake.stopIntake();
+//             case SHOOTING:
+//                 shooter.startShooter();
+//                 intake.stopIntake();
 
-                // if(pose.getY()>4 || pose.getY()<12.535){
-                //     turret.passing(pose, alliance);
-                // }else{
-                //     turret.autoTrackingHub(alliance);
-                // }
+//                 // if(pose.getY()>4 || pose.getY()<12.535){
+//                 //     turret.passing(pose, alliance);
+//                 // }else{
+//                 //     turret.autoTrackingHub(alliance);
+//                 // }
                 
 
-                turret.autoTrackingHub(alliance);
+//                 turret.autoTrackingHub(alliance);
 
 
-                if(shooter.isAtSpeed()){
-                    spindexer.runSpindexer();
-                    feeder.runFeeder();
-                }else{
-                    spindexer.stopSpindexer();
-                feeder.stopFeeder();
-                }
+//                 if(shooter.isAtSpeed()){
+//                     spindexer.runSpindexer();
+//                     feeder.runFeeder();
+//                 }else{
+//                     spindexer.stopSpindexer();
+//                 feeder.stopFeeder();
+//                 }
                 
-                intake.pivotStopAgitate();
+//                 intake.pivotStopAgitate();
 
-                break;
+//                 break;
 
-            case REVERSING:
+//             case REVERSING:
 
-                intake.reverseIntakeCommand();
-                shooter.shooterStop();
-                turret.zeroPivotCommand();
-                turret.zeroTurretCommand();
-                spindexer.reverseSpindexerCommand();
-                feeder.reverseFeederCommand();
-                intake.pivotStopAgitateCommand();
+//                 intake.reverseIntakeCommand();
+//                 shooter.shooterStop();
+//                 turret.zeroPivotCommand();
+//                 turret.zeroTurretCommand();
+//                 spindexer.reverseSpindexerCommand();
+//                 feeder.reverseFeederCommand();
+//                 intake.pivotStopAgitateCommand();
 
-                break;
-        }
+//                 break;
+//         }
 
-    }, intake, shooter, turret, spindexer, feeder);
-}
+//     }, intake, shooter, turret, spindexer, feeder);
+// }
 }

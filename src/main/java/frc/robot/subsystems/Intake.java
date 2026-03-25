@@ -35,10 +35,10 @@ public class Intake extends SubsystemBase {
         intakeconfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         intakeconfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 1.0;
 
-        intakePivotMotor.setPosition(2.68);
-        //intakePivotMotor.setPosition(0);
+        //intakePivotMotor.setPosition(2.68);
+        intakePivotMotor.setPosition(0);
 
-        intakeconfig.Slot0.kP=50; //TODO: Increase p
+        intakeconfig.Slot0.kP=80; //TODO: Increase p
 
         // Retry logic to ensure intakeconfig is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -149,10 +149,10 @@ public Command stopIntakeCommand(){
            
             new SequentialCommandGroup(
                 
-                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(0))),
+                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(7.7))),
                 new WaitCommand(0.45),
 
-                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(1.9))),
+                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(0))),
                 new WaitCommand(0.45)
             )
            )
@@ -161,7 +161,7 @@ public Command stopIntakeCommand(){
 
     public Command pivotUp(){
         return this.runOnce(
-            () -> intakePivotMotor.setControl(new PositionVoltage(1.9))
+            () -> intakePivotMotor.setControl(new PositionVoltage(0))
         );
     }
 
