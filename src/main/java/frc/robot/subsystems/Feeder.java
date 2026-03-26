@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FeederConstants;
+import frc.robot.constants.ShooterConstants;
 
 public class Feeder extends SubsystemBase {
     private final TalonFX feederMotor;
@@ -19,7 +20,7 @@ public class Feeder extends SubsystemBase {
     public Feeder(Shooter shooter) {
         // Use a unique CAN ID (e.g., 18)
         feederMotor = new TalonFX(20);
-         this.shooter = shooter;
+        this.shooter = shooter;
         configureMotors();
     }
 
@@ -42,20 +43,7 @@ public class Feeder extends SubsystemBase {
             System.out.println("Could not configure Feeder motor. Error: " + status.toString());
         }
     }
-
-   @Override
-    public void periodic() {
-        if(shooter.getSpeed()>60){
-            feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
-        }else{
-             feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
-        }
-    } 
-    // --- Commands ---
-
-    /**
-     * Runs the feeder forward at full speed to launch into the shooter.
-     */
+    
     public Command runFeederCommand() {
         return this.runEnd(
                         () -> feederMotor.set(FeederConstants.FEEDER_FAST_SPEED),
@@ -69,9 +57,6 @@ public class Feeder extends SubsystemBase {
         feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
     }
 
-    /**
-     * Runs the feeder slowly - useful for indexing or "unjamming".
-     */
     public Command slowFeedCommand() {
         return this.runEnd(
             () -> feederMotor.set(FeederConstants.FEEDER_SLOW_SPEED),
@@ -87,7 +72,17 @@ public class Feeder extends SubsystemBase {
        feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
         
     }
-     public Command reverseFeederCommand() {
+    
+    public Command reverseFeederCommand() {
         return this.runOnce(() -> feederMotor.set(-FeederConstants.FEEDER_SLOW_SPEED));
     }
+
+   @Override
+    public void periodic() {
+        if(shooter.getSpeed() > ShooterConstants.SPEED_THRESHOLD_FOR_INTAKE){
+            feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
+        }else{
+             feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
+        }
+    } 
 }

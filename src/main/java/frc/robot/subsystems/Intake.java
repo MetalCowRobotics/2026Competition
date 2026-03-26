@@ -36,9 +36,9 @@ public class Intake extends SubsystemBase {
         intakeconfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 1.0;
 
         //intakePivotMotor.setPosition(2.68);
-        intakePivotMotor.setPosition(0);
+        intakePivotMotor.setPosition(IntakeConstants.PIVOT_INTAKE_UP);
 
-        intakeconfig.Slot0.kP=80; //TODO: Increase p
+        intakeconfig.Slot0.kP = IntakeConstants.KP; //TODO: Increase p
 
         // Retry logic to ensure intakeconfig is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
@@ -56,119 +56,112 @@ public class Intake extends SubsystemBase {
         }
     }
 
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber("Intake Pivot Value", intakePivotMotor.getPosition().getValueAsDouble());
+
+
+
+    public void startIntake() {
+        intakeMotor.set(IntakeConstants.INTAKE_SPEED);
+    }
+
+    public void stopIntake() {
+        intakeMotor.set(IntakeConstants.INTAKE_IDLE_SPEED);
+    }
+
+    public void slowIntake() {
+        intakeMotor.set(IntakeConstants.INTAKE_SLOW_SPEED);
+    }
+
+    public void reverseIntake() {
+        intakeMotor.set(IntakeConstants.INTAKE_REVERSE_SPEED);
+    }
+
+    public Command stopIntakeCommand(){
+        return this.runOnce(
+            () -> stopIntake()
+        );
+    }
+
+
+    public Command startIntakeCommand() {
+        return this.runOnce(
+            () -> startIntake()
+        );
     }
 
 
    public Command runIntakeCommand() {
         return this.startEnd(
-            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED),
-            () -> intakeMotor.set(0)
+            () -> startIntake(),
+            () -> stopIntake()
         );
     }
-
-    public void startIntake() {
-    intakeMotor.set(IntakeConstants.INTAKE_SPEED);
-}
-
-public void stopIntake() {
-    intakeMotor.set(IntakeConstants.INTAKE_IDLE_SPEED);
-}
-
-public Command stopIntakeCommand(){
-    return this.runOnce(
-        () -> stopIntake()
-    );
-}
-
-
-       public Command startIntakeCommand() {
-        return this.runOnce(
-            () -> intakeMotor.set(IntakeConstants.INTAKE_SPEED)
-        );
-    }
-
-
 
      public Command startSlowIntakeCommand() {
         return this.runOnce(
-            () -> intakeMotor.set(IntakeConstants.INTAKE_SLOW_SPEED)
+            () -> slowIntake()
         );
-    }
-
-    public void pivotAgitate(){
-
-                intakeMotor.set(-0.5);
-
-
-         //intakePivotMotor.setControl(new PositionVoltage(1));
-        // if(intakePivotMotor.getPosition().getValueAsDouble() < 0.1) intakePivotMotor.setControl(new PositionVoltage(1.9));
-        // if(intakePivotMotor.getPosition().getValueAsDouble() > 1.7)
-        // {
-        
-            
-        //} 
-
     }
 
     public Command pivotStart() {
         return this.runOnce(
-            () -> intakePivotMotor.setControl(new PositionVoltage(0))
+            () -> intakePivotMotor.setControl(new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP))
         );
     }
     
     public void pivotStopAgitate(){
-       intakePivotMotor.setControl(new PositionVoltage(0));
+       intakePivotMotor.setControl(new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP));
     }
 
     public Command endIntakeCommand() {
         return this.runOnce(
-            () -> intakeMotor.set(0)
+            () -> stopIntake()
         );
     }
     
-    // use for whileTrue
     public Command reverseIntakeCommand() {
         return this.startEnd(
-            () -> intakeMotor.set(IntakeConstants.INTAKE_REVERSE_SPEED),
-            () -> intakeMotor.set(0)
+            () -> reverseIntake(),
+            () -> stopIntake()
         );
     }
 
-    public Command pivotAgitateCommand()
-    {
-        
+    public Command pivotAgitateCommand() {
+        return new ParallelCommandGroup(
+            this.startEnd(
+                () -> slowIntake(),
+                () -> stopIntake()
+            ),
+            new RepeatCommand(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> intakePivotMotor.setControl(
+                        new PositionVoltage(IntakeConstants.PIVOT_INTAKE_DOWN)
+                    )),
+                    new WaitCommand(IntakeConstants.TIME_BTW_AGITATE),
 
-       return new RepeatCommand(
-
-           new ParallelCommandGroup(
-
-            runOnce(() -> intakeMotor.set(-0.3)),
-           
-            new SequentialCommandGroup(
-                
-                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(7.7))),
-                new WaitCommand(0.45),
-
-                new InstantCommand(()-> intakePivotMotor.setControl(new PositionVoltage(0))),
-                new WaitCommand(0.45)
+                    new InstantCommand(() -> intakePivotMotor.setControl(
+                        new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP)
+                    )),
+                    new WaitCommand(IntakeConstants.TIME_BTW_AGITATE)
+                )
             )
-           )
         );
     }
 
     public Command pivotUp(){
         return this.runOnce(
-            () -> intakePivotMotor.setControl(new PositionVoltage(0))
+            () -> intakePivotMotor.setControl(new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP))
         );
     }
 
-    public Command pivotStopAgitateCommand()
-    {
+    public Command pivotStopAgitateCommand(){
         return this.runOnce(
             () -> pivotStopAgitate()
         );
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Intake Pivot Position", intakePivotMotor.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("Intake Velocity", intakeMotor.getVelocity().getValueAsDouble());
     }
 }

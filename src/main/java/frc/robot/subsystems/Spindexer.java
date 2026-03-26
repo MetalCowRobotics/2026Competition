@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.ShooterConstants;
 import frc.robot.constants.SpindexerConstants;
 
 public class Spindexer extends SubsystemBase {
@@ -39,30 +40,22 @@ public class Spindexer extends SubsystemBase {
         }
     }
 
-    // --- Commands ---
-
-    /**
-     * Runs the spindexer forward. 
-     * Using 'runEnd' ensures it stops immediately when the button is released.
-     */
-    
-    public Command runSpindexerCommand() {
-     
- return this.run(
-            () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED) // 50% power is usually enough for indexing
-        );
-        
-       
-    }
-
-     public void runSpindexer() {
+    public void runSpindexer() {
         spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED); // 50% power is usually enough for indexing
         
     }
 
-    /**
-     * Runs the spindexer in reverse to clear jams.
-     */
+    public void stopSpindexer(){
+        spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
+    }
+
+    public Command runSpindexerCommand() {
+     
+        return this.run(
+            () -> runSpindexer() // 50% power is usually enough for indexing
+        );
+    }
+
     public Command reverseSpindexerCommand() {
         return this.runEnd(
             () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_REVERSE_SPEED),
@@ -71,19 +64,15 @@ public class Spindexer extends SubsystemBase {
     }
 
     public Command stopSpindexerCommand() {
-        return this.runOnce(() -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED));
-    }
-
-    public void stopSpindexer(){
-        spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
+        return this.runOnce(() -> stopSpindexer());
     }
 
     @Override
     public void periodic(){
-        if(shooter.getSpeed()>60){
-            spindexerMotor.set(SpindexerConstants.SPINDEXER_SPEED);
+        if(shooter.getSpeed()>ShooterConstants.SPEED_THRESHOLD_FOR_INTAKE){
+            runSpindexer();
         }else{
-            spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED);
+            stopSpindexer();
         }
     }
 }

@@ -44,10 +44,10 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 30; // Limit motor heat TODO: Change 
+    config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO: Change 
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 30; // Limit battery draw TODO: Change
+    config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit battery draw TODO: Change
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -69,10 +69,10 @@ public class Shooter extends SubsystemBase {
     slot0.kP = 5; 
     slot0.kV = 0.12; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 30; // Limit motor heat TODO:Change back
+    config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO:Change back
 
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 30; // Limit battery draw TODO:Change back
+    config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit battery draw TODO:Change back
     // 2. Mechanics
     config.Feedback.SensorToMechanismRatio = 0.977778;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -85,29 +85,16 @@ public class Shooter extends SubsystemBase {
         if (!status.isOK()) {
             System.out.println("Could not configure follower motor. Error: " + status.toString());
         }
-    // 5. Follower logic
-    shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
-}
-
-    @Override
-    public void periodic() {
-         // This method will be called once per scheduler run
-        SmartDashboard.putNumber("Shooter Current", getShooterCurrent());
-        SmartDashboard.putNumber("Velocity", getSpeed());
+        // 5. Follower logic
+        shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
     }
 
-    public double getShooterCurrent()
-    {
+
+    public double getShooterCurrent(){
         return shooterMotor1.getStatorCurrent().getValueAsDouble();
     }
 
-    // @Override
-    public void toggleShooter() {
-        shooterEnabled = !shooterEnabled;
-    }
-
-    public double getSpeed()
-    {
+    public double getSpeed(){
         return shooterMotor1.getVelocity().getValueAsDouble();
     }
 
@@ -116,61 +103,30 @@ public class Shooter extends SubsystemBase {
         shooterMotor2.set(0);
     }
 
-    public Command shooterStop()
-    {
-        return this.runOnce(
+    public void startShooter(){
+        double smoothSpeed1 = limiter.calculate(ShooterConstants.SHOOTER_SPEED);
+        double smoothSpeed2 = limiter.calculate(ShooterConstants.SHOOTER_SPEED);
+        
+        shooterMotor1.set(smoothSpeed1);
+        shooterMotor2.set(smoothSpeed2);
+    }
+
+    public Command shooterStop(){
+            return this.runOnce(
+                () -> stopShooter()
+            );
+        }
+        
+    public Command startShooterCommand() {
+            return this.startEnd(
+            () -> startShooter(),
             () -> stopShooter()
-        );
-    }
-    
-    // public Command shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    // {
-    //     return this.runOnce(
-    //         // When the command starts, run the intake
-    //         () -> setTargetPosition(turret.getYawAngle(robotPose, robotVelocity, alliance))
-    //     );
-    // }
-
-    // Create a reusable velocity request
-// private final com.ctre.phoenix6.controls.VelocityVoltage velocityRequest = 
-//     new com.ctre.phoenix6.controls.VelocityVoltage(20);
-
-// public Command startShooter() {
-//     double targetRPS = (5000.0 / 60.0); // Converts 2000 RPM to RPS
-//     //var velocityRequest =  new VelocityVoltage(30);
-    
-//     return this.run(() -> {
-
-//     }}
-
-//         // Apply velocity control to motor 1 (motor 2 follows)
-//         shooterMotor1.set(1);
-//     });
-// }
-
-public void startShooter(){
-
-    double smoothSpeed1 = limiter.calculate(1);
-    double smoothSpeed2 = limiter.calculate(1);
-    
-    shooterMotor1.set(smoothSpeed1);
-    shooterMotor2.set(smoothSpeed2);
-}
-    
-public Command startShooterCommand() {
-        return this.runOnce(() -> startShooter());
+            );
     }
 
-    
-
-
-
-    // public ShootingParams shootPhase1(Pose2d robotPose,ChassisSpeeds robotVelocity,char alliance)
-    // {
-    //     ShootingParams tp =  new ShootingParams();
-    //     tp.yawAngle = turret.getYawAngle(robotPose, robotVelocity, alliance);        
-    //     return tp;
-    // }
-
-    //54.7555
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Shooter Current", getShooterCurrent());
+        SmartDashboard.putNumber("Velocity", getSpeed());
+    }
 }
