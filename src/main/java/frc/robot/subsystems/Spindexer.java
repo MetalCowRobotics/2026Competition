@@ -57,7 +57,7 @@ public class Spindexer extends SubsystemBase {
     }
 
     public Command reverseSpindexerCommand() {
-        return this.runEnd(
+        return this.startEnd(
             () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_REVERSE_SPEED),
             () -> spindexerMotor.set(SpindexerConstants.SPINDEXER_IDLE_SPEED)
         );

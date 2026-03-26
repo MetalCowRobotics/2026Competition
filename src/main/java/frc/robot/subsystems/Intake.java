@@ -126,26 +126,31 @@ public class Intake extends SubsystemBase {
     }
 
     public Command pivotAgitateCommand() {
-        return new ParallelCommandGroup(
-            this.startEnd(
-                () -> slowIntake(),
-                () -> stopIntake()
-            ),
-            new RepeatCommand(
-                new SequentialCommandGroup(
-                    new InstantCommand(() -> intakePivotMotor.setControl(
-                        new PositionVoltage(IntakeConstants.PIVOT_INTAKE_DOWN)
-                    )),
-                    new WaitCommand(IntakeConstants.TIME_BTW_AGITATE),
+    return new ParallelCommandGroup(
+        this.startEnd(
+            () -> slowIntake(),
+            () -> stopIntake()
+        ),
+        new RepeatCommand(
+            new SequentialCommandGroup(
+                new InstantCommand(() -> intakePivotMotor.setControl(
+                    new PositionVoltage(IntakeConstants.PIVOT_INTAKE_DOWN)
+                )),
+                new WaitCommand(IntakeConstants.TIME_BTW_AGITATE),
 
-                    new InstantCommand(() -> intakePivotMotor.setControl(
-                        new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP)
-                    )),
-                    new WaitCommand(IntakeConstants.TIME_BTW_AGITATE)
-                )
+                new InstantCommand(() -> intakePivotMotor.setControl(
+                    new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP)
+                )),
+                new WaitCommand(IntakeConstants.TIME_BTW_AGITATE)
             )
+        )
+    ).finallyDo(() -> {
+        // THIS RUNS WHEN BUTTON IS RELEASED
+        intakePivotMotor.setControl(
+            new PositionVoltage(IntakeConstants.PIVOT_INTAKE_DOWN)
         );
-    }
+    });
+}
 
     public Command pivotUp(){
         return this.runOnce(
