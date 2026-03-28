@@ -1,6 +1,10 @@
 [
   {
     "name": "roborio",
+<<<<<<< HEAD
     "path": "C:\\Users\\svcrobotics\\Documents\\2026Competition\\build\\debug\\roborio.json"
+=======
+    "path": "/Users/ansh/Desktop/2026Competition/build/debug/roborio.json"
+>>>>>>> 92add17a5b64b0d4fc392e2ed0faec44b41456a9
   }
 ]

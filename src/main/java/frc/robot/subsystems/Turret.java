@@ -33,6 +33,7 @@ public class Turret extends SubsystemBase {
 
 
     public boolean isUnderTrench = false;
+    public boolean isManualZeroPivot = false;
 
     PIDController pid = new PIDController(TurretConstants.KP_TURRET, 0,0);
 
@@ -449,7 +450,14 @@ public Command  zeroOnlyPivotCommand(){
         // 1. Get distance in meters (already calculated earlier)
         double distanceMeters = distToHub;
 
-        targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+        if(isUnderTrench){
+            targetPitchDegrees = 0;
+        }else if(isManualZeroPivot){
+            targetPitchDegrees = -10;
+        }else{
+            targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+        }
+         
         targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
         double pitchOnlyRotations = targetPitchDegrees / 360.0;
@@ -457,6 +465,28 @@ public Command  zeroOnlyPivotCommand(){
         double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
 
         pivotMotor.setControl(request.withPosition(pitchOnlyRotations + (turretCurrentRotations * 0.2088)));
+
+        if(targetPitchDegrees == -10 && Math.abs((pitchOnlyRotations + (turretCurrentRotations * 0.2088)) - pivotMotor.getPosition().getValueAsDouble()) < 0.003){
+            pivotMotor.setPosition(turretMotor.getPosition().getValueAsDouble());
+            isManualZeroPivot = false;
+        }
+    }
+
+    public void manualZeroPivot(){
+        isManualZeroPivot = true;
+    }
+
+     public void manualZeroPivotFalse(){
+        isManualZeroPivot = false;
+    }
+
+
+
+    public Command manualZeroPivotCommand(){
+        return this.startEnd(
+            () -> manualZeroPivot(),
+            () -> manualZeroPivotFalse()
+        );
     }
 
 
@@ -465,11 +495,13 @@ public void periodic() {
    // --- Telemetry ---
     SmartDashboard.putNumber("Turret/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble()*360);
     SmartDashboard.putNumber("Turret/Target_Pitch_Deg", targetPitchDegrees );
+    SmartDashboard.putBoolean("Manual Zero Pivot", isManualZeroPivot);
+
     
     SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble()*360);
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 
-    autoTrackingHubCommand(alliance);
+    //autoTrackingHubCommand(alliance);
 
 
     //BLUE
