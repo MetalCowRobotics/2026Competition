@@ -66,8 +66,8 @@ public class Shooter extends SubsystemBase {
         // config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     
     config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1; // 1 second ramp
-    slot0.kP = 5; 
-    slot0.kV = 0.12; 
+    slot0.kP = 6; 
+    slot0.kV = 0.16; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO:Change back
 

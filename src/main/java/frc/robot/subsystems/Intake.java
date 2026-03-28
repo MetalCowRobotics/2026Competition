@@ -109,7 +109,7 @@ public class Intake extends SubsystemBase {
     }
     
     public void pivotStopAgitate(){
-       intakePivotMotor.setControl(new PositionVoltage(IntakeConstants.PIVOT_INTAKE_UP));
+       intakePivotMotor.setControl(new PositionVoltage(IntakeConstants.PIVOT_INTAKE_DOWN));
     }
 
     public Command endIntakeCommand() {

@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.security.PublicKey;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -50,6 +52,7 @@ public class Turret extends SubsystemBase {
         double targetPitchDegrees;
         double currentTurretAngle;
         double turretTargetDeg;
+        double turretpivotTargetRotations;
     
     PositionVoltage request = new PositionVoltage(0);
 
@@ -117,7 +120,7 @@ public class Turret extends SubsystemBase {
     public void zeroOnlyPivot()
     {
         double turretRotations = turretMotor.getPosition().getValueAsDouble();
-        pivotMotor.setPosition(turretRotations * .2147);
+        pivotMotor.setControl(request.withPosition(turretRotations*.2088));
     }
 
 public Command autoTrackingHubCommand(char al) {
@@ -125,7 +128,18 @@ public Command autoTrackingHubCommand(char al) {
             () -> autoTrackingHub(al)
         );
     }
-    
+
+public Command autoTrackingHubCommand(char al, double p) {
+        return this.run(
+            () -> autoTrackingHub(al,p)
+        );
+    }
+
+public Command  zeroOnlyPivotCommand(){
+    return this.run(
+       ()-> zeroOnlyPivot()
+        );
+}  
 
     public void switchTrenchMode(){
         isUnderTrench = !isUnderTrench;
@@ -236,6 +250,111 @@ public Command autoTrackingHubCommand(char al) {
         );
     }
    
+    public void autoTrackingHub(char a, double pitch){
+        Pose2d robotPos = drivetrain.getState().Pose;
+        
+
+        // Get robot-relative speeds and transform them to field-relative
+        var robotRelativeSpeeds = drivetrain.getState().Speeds;
+        var fieldRelativeSpeeds = edu.wpi.first.math.kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
+            robotRelativeSpeeds, 
+            robotPos.getRotation()
+        );
+
+        double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
+        double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
+
+        double shooterCurrent = shooter.getShooterCurrent();
+
+        // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---    
+        // Initial distance estimate to get a baseline flight time
+        Translation2d Blue_Left_Target = new Translation2d(2,1);
+        Translation2d Blue_Right_Target = new Translation2d(2,7);
+        Translation2d Red_Left_Target = new Translation2d(14.535,7);
+        Translation2d Red_Right_Target = new Translation2d(14.535,1);
+        double distToHub = 0;
+        Translation2d desiredHub;
+
+        if (a == 'R') desiredHub = redHubMeters;
+        else desiredHub = blueHubMeters;
+
+        Translation2d finalTarget; 
+
+        if(alliance == 'R'){
+            if(robotPos.getX()>13){
+                finalTarget = desiredHub;
+            }
+            else if(robotPos.getY()>4){
+                finalTarget = Red_Left_Target;
+            }else{
+                finalTarget = Red_Right_Target;
+            }
+           
+        }else{
+            if(robotPos.getX()<3.5){
+                finalTarget = desiredHub;
+            }
+            else if(robotPos.getY()>4){
+                finalTarget = Blue_Right_Target;
+            }else{
+                finalTarget = Blue_Left_Target;
+            }
+        }
+
+        
+        
+
+        //double v = shooter.getSpeed(); 
+        double v = SHOOTER_SPEED;
+        double flightTime = distToHub / v; // Rough estimate of time-to-target
+
+        // Calculate lead position: Target = Current - (Velocity * Time)
+        Translation2d leadingTarget = new Translation2d(
+            finalTarget.getX() - (robotVx * flightTime),
+            finalTarget.getY() - (robotVy * flightTime)
+        );
+
+        // --- 4. TURRET CONTROL (Azimuth) ---
+        double turretRotations = turretMotor.getPosition().getValueAsDouble();
+        currentTurretAngle = (turretRotations * 360.0) % 360.0;
+        if (currentTurretAngle < 0) currentTurretAngle += 360.0;
+
+        // Calculate angle to the LEADING target
+        double angleToLeadRad = Math.atan2(
+            leadingTarget.getY() - robotPos.getY(), 
+            leadingTarget.getX() - robotPos.getX()
+        );
+
+        turretTargetDeg = MathUtil.inputModulus(
+        Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
+        0, 360
+        );
+        turretpivotTargetRotations = 
+        Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations() + TurretConstants.TURRET_OFFSET_DEG/360;
+
+        double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
+        
+        double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
+        turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * TurretConstants.KP_TURRET);
+
+
+        // --- 5. PIVOT CONTROL (Using Lookup Table) ---
+
+        // 1. Get distance in meters (already calculated earlier)
+        double distanceMeters = distToHub;
+
+        targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+        targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
+
+        double pitchOnlyRotations = pitch / 360.0;
+
+        targetPitchDegrees = pitch;
+
+        double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
+
+        pivotMotor.setControl(request.withPosition(pitchOnlyRotations + (turretCurrentRotations * 0.2088)));
+        //pivotMotor.setControl(request.withPosition(pitchOnlyRotations));
+    }
     
     public void autoTrackingHub(char a){
         Pose2d robotPos = drivetrain.getState().Pose;
@@ -255,14 +374,41 @@ public Command autoTrackingHubCommand(char al) {
 
         // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---    
         // Initial distance estimate to get a baseline flight time
-
+        Translation2d Blue_Left_Target = new Translation2d(2,1);
+        Translation2d Blue_Right_Target = new Translation2d(2,7);
+        Translation2d Red_Left_Target = new Translation2d(14.535,7);
+        Translation2d Red_Right_Target = new Translation2d(14.535,1);
         double distToHub = 0;
         Translation2d desiredHub;
 
         if (a == 'R') desiredHub = redHubMeters;
         else desiredHub = blueHubMeters;
+
+        Translation2d finalTarget; 
+
+        if(alliance == 'R'){
+            if(robotPos.getX()>13){
+                finalTarget = desiredHub;
+            }
+            else if(robotPos.getY()>4){
+                finalTarget = Red_Left_Target;
+            }else{
+                finalTarget = Red_Right_Target;
+            }
+           
+        }else{
+            if(robotPos.getX()<3.5){
+                finalTarget = desiredHub;
+            }
+            else if(robotPos.getY()>4){
+                finalTarget = Blue_Right_Target;
+            }else{
+                finalTarget = Blue_Left_Target;
+            }
+        }
+
         
-        distToHub = robotPos.getTranslation().getDistance(desiredHub);
+        
 
         //double v = shooter.getSpeed(); 
         double v = SHOOTER_SPEED;
@@ -270,8 +416,8 @@ public Command autoTrackingHubCommand(char al) {
 
         // Calculate lead position: Target = Current - (Velocity * Time)
         Translation2d leadingTarget = new Translation2d(
-            desiredHub.getX() - (robotVx * flightTime),
-            desiredHub.getY() - (robotVy * flightTime)
+            finalTarget.getX() - (robotVx * flightTime),
+            finalTarget.getY() - (robotVy * flightTime)
         );
 
         // --- 4. TURRET CONTROL (Azimuth) ---
@@ -289,6 +435,8 @@ public Command autoTrackingHubCommand(char al) {
         Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
         0, 360
         );
+        turretpivotTargetRotations = 
+        Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations() + TurretConstants.TURRET_OFFSET_DEG/360;
 
         double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
         
@@ -420,6 +568,7 @@ public void autoTrackingPass(Translation2d desiredTarget){
     Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
     0, 360
     );
+    
     double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
     
     double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
