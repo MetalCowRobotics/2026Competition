@@ -450,14 +450,7 @@ public Command  zeroOnlyPivotCommand(){
         // 1. Get distance in meters (already calculated earlier)
         double distanceMeters = distToHub;
 
-        if(isUnderTrench){
-            targetPitchDegrees = 0;
-        }else if(isManualZeroPivot){
-            targetPitchDegrees = -10;
-        }else{
-            targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
-        }
-         
+        targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
         targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
         double pitchOnlyRotations = targetPitchDegrees / 360.0;
@@ -465,11 +458,6 @@ public Command  zeroOnlyPivotCommand(){
         double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
 
         pivotMotor.setControl(request.withPosition(pitchOnlyRotations + (turretCurrentRotations * 0.2088)));
-
-        if(targetPitchDegrees == -10 && Math.abs((pitchOnlyRotations + (turretCurrentRotations * 0.2088)) - pivotMotor.getPosition().getValueAsDouble()) < 0.003){
-            pivotMotor.setPosition(turretMotor.getPosition().getValueAsDouble());
-            isManualZeroPivot = false;
-        }
     }
 
     public void manualZeroPivot(){

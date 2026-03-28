@@ -9,9 +9,9 @@ public class IntakeConstants {
     public final static double TIME_BTW_AGITATE = 0.45; //seconds
 
 
-    public final static double PIVOT_INTAKE_DOWN = 7.7;
+    public final static double PIVOT_INTAKE_DOWN = 13.9;
 
     public final static double PIVOT_INTAKE_UP = 0.0;
 
-    public final static double KP = 80;
+    public final static double KP = 0.3;
 }

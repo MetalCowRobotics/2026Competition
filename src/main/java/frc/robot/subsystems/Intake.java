@@ -39,6 +39,7 @@ public class Intake extends SubsystemBase {
         intakePivotMotor.setPosition(IntakeConstants.PIVOT_INTAKE_UP);
 
         intakeconfig.Slot0.kP = IntakeConstants.KP; //TODO: Increase p
+        //intakeconfig.Slot0.kD = 0.2;
 
         // Retry logic to ensure intakeconfig is applied
         StatusCode status = StatusCode.StatusCodeNotInitialized;
