@@ -302,7 +302,7 @@ public Command  zeroOnlyPivotCommand(){
             }
         }
 
-        
+        distToHub = robotPos.getTranslation().getDistance(finalTarget);
         
 
         //double v = shooter.getSpeed(); 
@@ -344,8 +344,10 @@ public Command  zeroOnlyPivotCommand(){
         // 1. Get distance in meters (already calculated earlier)
         double distanceMeters = distToHub;
 
-        targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
-        targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
+        SmartDashboard.putNumber("Dis", distanceMeters);
+
+        // targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+        // targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
         double pitchOnlyRotations = pitch / 360.0;
 
@@ -421,6 +423,8 @@ public Command  zeroOnlyPivotCommand(){
             finalTarget.getY() - (robotVy * flightTime)
         );
 
+        distToHub = robotPos.getTranslation().getDistance(finalTarget);
+
         // --- 4. TURRET CONTROL (Azimuth) ---
         double turretRotations = turretMotor.getPosition().getValueAsDouble();
         currentTurretAngle = (turretRotations * 360.0) % 360.0;
@@ -449,6 +453,8 @@ public Command  zeroOnlyPivotCommand(){
 
         // 1. Get distance in meters (already calculated earlier)
         double distanceMeters = distToHub;
+
+        SmartDashboard.putNumber("Distance to Hub", distanceMeters);
 
         targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
         targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);

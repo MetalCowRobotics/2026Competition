@@ -57,9 +57,6 @@ public class Intake extends SubsystemBase {
         }
     }
 
-
-
-
     public void startIntake() {
         intakeMotor.set(IntakeConstants.INTAKE_SPEED);
     }
@@ -81,7 +78,6 @@ public class Intake extends SubsystemBase {
             () -> stopIntake()
         );
     }
-
 
     public Command startIntakeCommand() {
         return this.runOnce(

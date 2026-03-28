@@ -159,7 +159,7 @@ public class RobotContainer {
         //operatorController.a().whileTrue(intake.pivotAgitateCommand());
 
         
-        operatorController.b().whileTrue(feeder.reverseFeederCommand().alongWith(spindexer.reverseSpindexerCommand()));
+        //operatorController.b().whileTrue(feeder.reverseFeederCommand().alongWith(spindexer.reverseSpindexerCommand()));
         // operatorController.b().onFalse(intake.pivotStopAgitateCommand());
 
         operatorController.rightBumper().onTrue(turret.homePivotCommand());
@@ -169,15 +169,15 @@ public class RobotContainer {
         operatorController.leftTrigger().onTrue(intake.reverseIntakeCommand());
         operatorController.leftTrigger().onFalse(intake.stopIntakeCommand());
 
-        // operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, 10));
-        // operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, 15));
+        operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, 33));
+        operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, 35));
 
         operatorController.rightTrigger().toggleOnTrue(turret.manualZeroPivotCommand());
 
         //joystick.a().onTrue(intake.pivotUp());
     
-        joystick.rightBumper().whileFalse(turret.autoTrackingHubCommand(alliance));
-        joystick.rightBumper().whileTrue(turret.zeroOnlyPivotCommand());   
+        // joystick.rightBumper().whileFalse(turret.autoTrackingHubCommand(alliance));
+        // joystick.rightBumper().whileTrue(turret.zeroOnlyPivotCommand());   
     }
 
     public Command getAutonomousCommand() {
