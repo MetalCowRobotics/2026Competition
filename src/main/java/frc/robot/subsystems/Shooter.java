@@ -8,6 +8,9 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -18,14 +21,20 @@ import frc.robot.constants.SpindexerConstants;
 public class Shooter extends SubsystemBase {
     private final TalonFX shooterMotor1;
     private final TalonFX shooterMotor2;
+    private final PivotLookup pivotLookup;
+    private final char alliance;
+    private final CommandSwerveDrivetrain drivetrain;
 
     private boolean shooterEnabled = false;
 
     SlewRateLimiter limiter = new SlewRateLimiter(20);
 
-    public Shooter() {
+    public Shooter(CommandSwerveDrivetrain drivetrain, char alliance) {
         shooterMotor1 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_ONE_ID);
         shooterMotor2 = new TalonFX(ShooterConstants.SHOOTER_MOTOR_TWO_ID);
+        pivotLookup = new PivotLookup();
+        this.alliance = alliance;
+        this.drivetrain  = drivetrain;
 
         // Configure the motor
         configureMotors();
@@ -89,6 +98,23 @@ public class Shooter extends SubsystemBase {
         shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
     }
 
+    public double calculatePower()
+    {
+        Pose2d robotPos = drivetrain.getState().Pose;       
+
+        Translation2d redHubMeters = new Translation2d(Units.inchesToMeters(469.11), Units.inchesToMeters(158.845));
+        Translation2d blueHubMeters = new Translation2d(Units.inchesToMeters(182.11),Units.inchesToMeters(158.845));
+        
+        double distToHub = 0;
+        Translation2d desiredHub;
+
+        if (alliance == 'R') desiredHub = redHubMeters;
+        else desiredHub = blueHubMeters;
+
+        distToHub = robotPos.getTranslation().getDistance(desiredHub);
+        return distToHub;
+    }
+
 
     public double getShooterCurrent(){
         return shooterMotor1.getStatorCurrent().getValueAsDouble();
@@ -104,11 +130,13 @@ public class Shooter extends SubsystemBase {
     }
 
     public void startShooter(){
-        double smoothSpeed1 = limiter.calculate(ShooterConstants.SHOOTER_SPEED);
-        double smoothSpeed2 = limiter.calculate(ShooterConstants.SHOOTER_SPEED);
+
+        double speed = pivotLookup.getPower(calculatePower());
+
+        double smoothSpeed1 = limiter.calculate(speed);
         
         shooterMotor1.set(smoothSpeed1);
-        shooterMotor2.set(smoothSpeed2);
+        shooterMotor2.set(smoothSpeed1); 
     }
 
     public Command shooterStop(){
@@ -122,6 +150,12 @@ public class Shooter extends SubsystemBase {
             () -> startShooter(),
             () -> stopShooter()
             );
+    }
+
+    public Command shooterCommand() {
+            return this.run(
+            () -> startShooter()
+            ).finallyDo(() -> stopShooter());
     }
 
     @Override

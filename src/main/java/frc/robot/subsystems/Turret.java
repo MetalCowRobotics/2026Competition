@@ -456,7 +456,7 @@ public Command  zeroOnlyPivotCommand(){
 
         SmartDashboard.putNumber("Distance to Hub", distanceMeters);
 
-        targetPitchDegrees = pivotLookup.calculateHoodAngle(distanceMeters);
+        targetPitchDegrees = pivotLookup.getAngle(distanceMeters);
         targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
 
         double pitchOnlyRotations = targetPitchDegrees / 360.0;
