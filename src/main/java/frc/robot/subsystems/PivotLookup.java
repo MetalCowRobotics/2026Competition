@@ -10,6 +10,7 @@ public class PivotLookup {
     // value: angle (degrees)
     private final TreeMap<Double, Double> angleMap = new TreeMap<>();
     private final TreeMap<Double, Double> velocityMap = new TreeMap<>();
+    
 
     public PivotLookup() {
         // Real tuning data (distance in meters → angle in degrees)
@@ -22,17 +23,15 @@ public class PivotLookup {
         velocityMap.put(.6, 15.0);
         velocityMap.put(.6, 20.0);
 
-        /*15 1.74 .55 
-20 2.46 .55 
-25 3.35 .60
-30 3.75 .65
-
-30 4.25 .70  
-30 4.75 .75
-
-35 5.25 .85
-
- */
+        /*
+            15 1.74 .55 
+            20 2.46 .55 
+            25 3.35 .60
+            30 3.75 .65
+            30 4.25 .70  
+            30 4.75 .75
+            35 5.25 .85
+        */
     }
 
     /* -------------------- Main API -------------------- */
