@@ -1,65 +1,59 @@
 package frc.robot.subsystems;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TreeMap;
 
 public class PivotLookup {
 
-    // key: distance (meters)
-    // value: angle (degrees)
-    private final TreeMap<Double, Double> angleMap = new TreeMap<>();
+    // Both keyed on distance (meters), interpolated independently
+    private final TreeMap<Double, Double> angleMap    = new TreeMap<>();
     private final TreeMap<Double, Double> velocityMap = new TreeMap<>();
     
 
     public PivotLookup() {
-        // Real tuning data (distance in meters → angle in degrees)
+        // Distance → Angle (degrees)
         angleMap.put(1.74, 15.0);
         angleMap.put(2.46, 20.0);
         angleMap.put(3.35, 25.0);
         angleMap.put(3.75, 30.0);
-        
+        angleMap.put(4.25, 30.0);  // Plateau — angle holds, power still climbs
+        angleMap.put(4.75, 30.0);
+        angleMap.put(5.25, 35.0);
 
-        velocityMap.put(.6, 15.0);
-        velocityMap.put(.6, 20.0);
-
-        /*
-            15 1.74 .55 
-            20 2.46 .55 
-            25 3.35 .60
-            30 3.75 .65
-            30 4.25 .70  
-            30 4.75 .75
-            35 5.25 .85
-        */
+        // Distance → Shooter power (percent, 0.0–1.0)
+        velocityMap.put(1.74, 0.55);
+        velocityMap.put(2.46, 0.55);
+        velocityMap.put(3.35, 0.60);
+        velocityMap.put(3.75, 0.65);
+        velocityMap.put(4.25, 0.70);
+        velocityMap.put(4.75, 0.75);
+        velocityMap.put(5.25, 0.85);
     }
 
     /* -------------------- Main API -------------------- */
 
-    public double calculateHoodAngle(double distanceMeters) {
-        return interpolate(distanceMeters);
+    public double getAngle(double distanceMeters) {
+        return interpolate(angleMap, distanceMeters);
+    }
+
+    public double getPower(double distanceMeters) {
+        return interpolate(velocityMap, distanceMeters);
     }
 
     /* -------------------- Interpolation -------------------- */
 
-    private double interpolate(double distanceMeters) {
-        // If exact match exists, return it
-        if (angleMap.containsKey(distanceMeters)) {
-            return angleMap.get(distanceMeters);
-        }
+    private double interpolate(TreeMap<Double, Double> map, double distanceMeters) {
+        if (map.containsKey(distanceMeters)) return map.get(distanceMeters);
 
-        // Get nearest lower and upper keys
-        Double lowerKey = angleMap.floorKey(distanceMeters);
-        Double upperKey = angleMap.ceilingKey(distanceMeters);
+        Double lowerKey = map.floorKey(distanceMeters);
+        Double upperKey = map.ceilingKey(distanceMeters);
 
-        // Handle out-of-bounds
-        if (lowerKey == null) return angleMap.get(upperKey);
-        if (upperKey == null) return angleMap.get(lowerKey);
+        // Clamp to table bounds instead of returning null
+        if (lowerKey == null) return map.get(upperKey);
+        if (upperKey == null) return map.get(lowerKey);
 
-        double lowerValue = angleMap.get(lowerKey);
-        double upperValue = angleMap.get(upperKey);
+        double lowerValue = map.get(lowerKey);
+        double upperValue = map.get(upperKey);
 
-        // Standard linear interpolation
         double t = (distanceMeters - lowerKey) / (upperKey - lowerKey);
         return lowerValue + t * (upperValue - lowerValue);
     }

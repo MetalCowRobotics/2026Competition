@@ -79,7 +79,7 @@ public class RobotContainer {
 
         // Create vision subsystem after drivetrain
         vision = new Vision(drivetrain);
-        shooter = new Shooter();
+        shooter = new Shooter(drivetrain,alliance);
         turret = new Turret(drivetrain,shooter,alliance);        
         intake = new Intake();
         spindexer = new Spindexer(shooter);
@@ -152,7 +152,7 @@ public class RobotContainer {
         operatorController.a().whileTrue(intake.pivotAgitateCommand());
         operatorController.a().whileFalse(intake.pivotStopAgitateCommand());
 
-        operatorController.y().toggleOnTrue(shooter.startShooterCommand());
+        operatorController.y().toggleOnTrue(shooter.shooterCommand());
 
         operatorController.x().toggleOnTrue(intake.runIntakeCommand());
 
