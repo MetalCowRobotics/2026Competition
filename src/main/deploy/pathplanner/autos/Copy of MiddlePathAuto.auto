@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Trench"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Copy of middle path"
@@ -19,7 +25,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Intaking"
+            "name": "Intake"
           }
         },
         {
@@ -31,7 +37,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Home"
+            "name": "Stop Intake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Trench"
           }
         },
         {
@@ -49,13 +61,25 @@
         {
           "type": "named",
           "data": {
-            "name": "Shooting"
+            "name": "Aim"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
           }
         },
         {
           "type": "wait",
           "data": {
             "waitTime": 5.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stop Shoot"
           }
         },
         {
@@ -73,7 +97,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Intaking"
+            "name": "Intake"
           }
         },
         {

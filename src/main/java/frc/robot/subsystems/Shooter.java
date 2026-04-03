@@ -154,8 +154,7 @@ public class Shooter extends SubsystemBase {
 
     public Command shooterCommand() {
             return this.run(
-            () -> startShooter()
-            ).finallyDo(() -> stopShooter());
+            () -> startShooter());
     }
 
     @Override

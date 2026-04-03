@@ -102,11 +102,11 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Shoot", shooter.shooterStop().alongWith(intake.pivotStopAgitateCommand()));
         NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
-        NamedCommands.registerCommand("Shoot", shooter.startShooterCommand().alongWith(intake.pivotAgitateCommand()));
+        NamedCommands.registerCommand("Shoot", shooter.shooterCommand().alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
 
         NamedCommands.registerCommand("Aim", turret.autoTrackingHubCommand(alliance));
-        NamedCommands.registerCommand("Trench", turret.getCurrentCommand());
+        NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 
         configureBindings();
     }
