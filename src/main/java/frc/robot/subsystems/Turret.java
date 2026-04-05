@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import java.security.PublicKey;
-
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -15,7 +13,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.ShooterConstants;
 import frc.robot.constants.TurretConstants;
 import edu.wpi.first.math.controller.PIDController;
 
@@ -48,7 +45,6 @@ public class Turret extends SubsystemBase {
     public char alliance;
 
     private final double SHOOTER_CURRENT_TURRET_FF = -0.2;
-    private final double SHOOTER_CURRENT_PIVOT_FF  = 0;
 
         double targetPitchDegrees;
         double currentTurretAngle;
@@ -146,61 +142,6 @@ public Command  zeroOnlyPivotCommand(){
         isUnderTrench = !isUnderTrench;
     }
 
-    public Command passingCommand(Pose2d robotPose, char alliance) {
-        Translation2d Blue_Left_Target = new Translation2d(2,1);
-        Translation2d Blue_Right_Target = new Translation2d(2,7);
-        Translation2d Red_Left_Target = new Translation2d(14.535,7);
-        Translation2d Red_Right_Target = new Translation2d(14.535,1);
-
-        Translation2d finalTarget; 
-
-        if(alliance == 'R'){
-            if(robotPose.getX()>4){
-                finalTarget = Red_Left_Target;
-            }else{
-                finalTarget = Red_Right_Target;
-            }
-        }else{
-            if(robotPose.getX()>4){
-                finalTarget = Blue_Right_Target;
-            }else{
-                finalTarget = Blue_Left_Target;
-            }
-        }
-
-        return this.run(
-            () -> autoTrackingPass(finalTarget)
-        );
-    }
-
-    public Translation2d passing(Pose2d robotPose, char alliance) {
-        Translation2d Blue_Left_Target = new Translation2d(2,1);
-        Translation2d Blue_Right_Target = new Translation2d(2,7);
-        Translation2d Red_Left_Target = new Translation2d(14.535,7);
-        Translation2d Red_Right_Target = new Translation2d(14.535,1);
-
-        Translation2d finalTarget; 
-
-        if(alliance == 'R'){
-            if(robotPose.getX()>4){
-                finalTarget = Red_Left_Target;
-            }else{
-                finalTarget = Red_Right_Target;
-            }
-        }else{
-            if(robotPose.getX()>4){
-                finalTarget = Blue_Right_Target;
-            }else{
-                finalTarget = Blue_Left_Target;
-            }
-        }
-
-        return finalTarget;
-
-        // autoTrackingPass(finalTarget);
-        
-    }
-
     public void zeroPivot(){
         PositionVoltage p = new PositionVoltage(0);
         pivotMotor.setControl(p.withPosition(0));
@@ -232,18 +173,6 @@ public Command  zeroOnlyPivotCommand(){
         );
     }
 
-    public Command lowerPivot()
-    {
-        return this.run(
-            () -> pivotMotor.set(-0.1)
-        );
-    }
-
-    public Command stopPivot(){
-        return this.run(
-            () -> pivotMotor.set(0)
-        );
-    }
 
     public Command switchTurretCommand(){
         return this.runOnce(
@@ -495,120 +424,8 @@ public void periodic() {
     SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble()*360);
     SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
 
-    //autoTrackingHubCommand(alliance);
-
-
-    //BLUE
-    // else if(drivetrain.getState().Pose.getX()>6.5){
-    //     passing(drivetrain.getState().Pose, alliance);
-    // }
-
-    
-
-    //RED
-    // else if(drivetrain.getState().Pose.getX()<6.5){
-    //     passing(drivetrain.getState().Pose, alliance);
-    // }
-
-
-
-        // if(this.alliance == 'B'){
-        //     if(drivetrain.getState().Pose.getX()<3.6){
-        //         autoTrackingHub(this.alliance);
-        //     }else if(drivetrain.getState().Pose.getX()>6){
-        //         //logic for passing
-        //         autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
-        //     }
-        //     else{
-        //         pivotMotor.setControl(request.withPosition(0));
-        //         // turretMotor.setControl(request.withPosition(0));
-
-        //         if(pivotMotor.getPosition().getValueAsDouble() <0.1){
-        //             pivotMotor.setPosition(0);
-            
-        //         }
-
-        //     }
-        //     //sus add an else with command?
-        // }else{
-        //     if(drivetrain.getState().Pose.getX()>13.5){
-        //         autoTrackingHub(this.alliance);
-        //     }else if(drivetrain.getState().Pose.getX()<10.4){
-        //         //logic for passing
-        //         autoTrackingPass(passing(drivetrain.getState().Pose, alliance));
-        //     }else{
-        //         pivotMotor.setControl(request.withPosition(0));
-        //         //turretMotor.setControl(request.withPosition(0));
-
-        //         if(pivotMotor.getPosition().getValueAsDouble() <0.1){
-        //             pivotMotor.setPosition(0);
-            
-        //         }
-        //     }
-        //     //same here sus add an else with command?
-        // }
+   
 }
-
-public void autoTrackingPass(Translation2d desiredTarget){
-    Pose2d robotPos = drivetrain.getState().Pose;
-    
-
-    // Get robot-relative speeds and transform them to field-relative
-    var robotRelativeSpeeds = drivetrain.getState().Speeds;
-    var fieldRelativeSpeeds = edu.wpi.first.math.kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
-        robotRelativeSpeeds, 
-        robotPos.getRotation()
-    );
-
-    double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
-    double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
-
-    double shooterCurrent = shooter.getShooterCurrent();
-
-    // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
-    // Initial distance estimate to get a baseline flight time
-
-    double distToTarget = 0;
-
-    distToTarget = robotPos.getTranslation().getDistance(desiredTarget);
-
-    double v = SHOOTER_SPEED;
-    double flightTime = distToTarget / v; // Rough estimate of time-to-target
-
-    // Calculate lead position: Target = Current - (Velocity * Time)
-    Translation2d leadingTarget = new Translation2d(
-        desiredTarget.getX() - (robotVx * flightTime),
-        desiredTarget.getY() - (robotVy * flightTime)
-    );
-
-     double turretRotations = turretMotor.getPosition().getValueAsDouble();
-    currentTurretAngle = (turretRotations * 360.0) % 360.0;
-    if (currentTurretAngle < 0) currentTurretAngle += 360.0;
-
-    // Calculate angle to the LEADING target
-    double angleToLeadRad = Math.atan2(
-        leadingTarget.getY() - robotPos.getY(), 
-        leadingTarget.getX() - robotPos.getX()
-    );
-    turretTargetDeg = MathUtil.inputModulus(
-    Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
-    0, 360
-    );
-    
-    double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
-    
-    double compensatedError = turretError + (shooterCurrent * SHOOTER_CURRENT_TURRET_FF);
-    //turretMotor.set(Math.abs(compensatedError) < 3 ? 0 : compensatedError * KP_TURRET);
-
-
-
-
-    // --- 5. PIVOT CONTROL (Coaxial Compensation) ---
-    //TODO: Play around with 4
-    double pitchOnlyRotations = (targetPitchDegrees / 360.0 )  ;//* 1.6; //COME HERE
-  
-    pivotMotor.setControl(request.withPosition(turretRotations * 0.2147 + pitchOnlyRotations + (shooterCurrent * SHOOTER_CURRENT_PIVOT_FF)));
-    }
 }
 
 
