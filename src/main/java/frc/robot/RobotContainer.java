@@ -105,7 +105,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot", shooter.shooterCommand().alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
 
-        NamedCommands.registerCommand("Aim", turret.autoTrackingHubCommand(alliance));
+       
         NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 
         configureBindings();
@@ -152,7 +152,7 @@ public class RobotContainer {
         operatorController.a().whileTrue(intake.pivotAgitateCommand());
         operatorController.a().whileFalse(intake.pivotStopAgitateCommand());
 
-        operatorController.y().toggleOnTrue(shooter.shooterCommand());
+        operatorController.y().toggleOnTrue(shooter.startShooterCommand());
 
         operatorController.x().toggleOnTrue(intake.runIntakeCommand());
 
@@ -169,10 +169,10 @@ public class RobotContainer {
         operatorController.leftTrigger().onTrue(intake.reverseIntakeCommand());
         operatorController.leftTrigger().onFalse(intake.stopIntakeCommand());
 
-        operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, 33));
-        operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, 35));
+        operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, false)); 
+        operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, true));
 
-        operatorController.rightTrigger().toggleOnTrue(turret.manualZeroPivotCommand());
+       // operatorController.rightTrigger().toggleOnTrue(turret.manualZeroPivotCommand());
 
         //joystick.a().onTrue(intake.pivotUp());
     
