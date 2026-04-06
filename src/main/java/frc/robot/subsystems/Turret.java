@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -80,6 +81,8 @@ public class Turret extends SubsystemBase {
         turretConfig.Slot0.kP = 50;
         turretConfig.Slot0.kV = 0;
         turretConfig.Slot0.kI = 0.001;
+        turretConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
+        turretConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.Feedback.SensorToMechanismRatio = 52.66;
@@ -187,9 +190,23 @@ public class Turret extends SubsystemBase {
                 leadingTarget.getY() - robotPos.getY(),
                 leadingTarget.getX() - robotPos.getX());
 
-        turretTarget = MathUtil.inputModulus(
-                Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations(),
-                0, 1);
+        //                 turretTargetDeg = MathUtil.inputModulus(
+        // Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
+        // 0, 360
+        // );
+
+        // double turretError = MathUtil.inputModulus(turretTargetDeg - currentTurretAngle, -180, 180);
+
+    //    turretTarget = MathUtil.inputModulus(
+    //            Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations(),
+    //            -1, 0);
+
+        
+
+
+        
+
+       turretTarget = Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations();
 
         turretMotor.setControl(request.withPosition((turretTarget)));
 
@@ -255,10 +272,10 @@ public class Turret extends SubsystemBase {
         // --- Telemetry ---
         SmartDashboard.putNumber("Pivot/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble() * 360);
         SmartDashboard.putNumber("Pivot/Target_Pitch_Deg", targetPitchDegrees);
-        SmartDashboard.putBoolean("Pivot/Manual Zero Pivot", isManualZeroPivot);
 
-        SmartDashboard.putNumber("Turret/Current_Turret_Deg", turretMotor.getPosition().getValueAsDouble() * 360);
-        SmartDashboard.putNumber("Turret/Target_Turret_Deg", turretTargetDeg);
+        SmartDashboard.putNumber("Turret/Current_Turret", turretMotor.getPosition().getValueAsDouble());
+        //SmartDashboard.putNumber("Turret/", );
+        SmartDashboard.putNumber("Turret/Target_Turret", turretTarget);
 
     }
 }
