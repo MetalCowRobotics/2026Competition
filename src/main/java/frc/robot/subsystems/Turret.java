@@ -78,9 +78,14 @@ public class Turret extends SubsystemBase {
         turretConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         turretConfig.CurrentLimits.StatorCurrentLimit = 45;
         turretConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        turretConfig.Slot0.kP = 50;
-        turretConfig.Slot0.kV = 0;
-        turretConfig.Slot0.kI = 0.001;
+        // turretConfig.Slot0.kP = 150;
+        // turretConfig.Slot0.kV = 0;
+        // turretConfig.Slot0.kI = 0.001;
+
+        turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        turretConfig.Slot0.kP = 150;
+        turretConfig.Slot0.kV = 20;
+        turretConfig.Slot0.kD = 2.5;
         turretConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
         turretConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
@@ -186,9 +191,27 @@ public class Turret extends SubsystemBase {
         // --- 4. TURRET CONTROL (Azimuth) ---
 
         // Calculate angle to the LEADING target
-        double angleToLeadRad = Math.atan2(
-                leadingTarget.getY() - robotPos.getY(),
-                leadingTarget.getX() - robotPos.getX());
+
+        
+                // X: 5.375 inches down of center
+                // Y: 4.375 inches to left of center
+        Translation2d turretOffset = new Translation2d(
+            Units.inchesToMeters(-5.375),     // back
+            Units.inchesToMeters(4.375)    // left
+        );
+
+        Translation2d turretOffsetField = turretOffset.rotateBy(robotPos.getRotation());
+
+        Translation2d turretFieldPosition = robotPos.getTranslation().plus(turretOffsetField);
+
+            double angleToLeadRad = Math.atan2(
+        leadingTarget.getY() - turretFieldPosition.getY(),
+        leadingTarget.getX() - turretFieldPosition.getX());
+      
+        // double angleToLeadRad = Math.atan2(
+        //         leadingTarget.getY() - robotPos.getY(),
+        //         leadingTarget.getX() - robotPos.getX());
+
 
         //                 turretTargetDeg = MathUtil.inputModulus(
         // Units.radiansToDegrees(angleToLeadRad) - robotPos.getRotation().getDegrees() + TurretConstants.TURRET_OFFSET_DEG,
@@ -270,11 +293,12 @@ public class Turret extends SubsystemBase {
     @Override
     public void periodic() {
         // --- Telemetry ---
-        SmartDashboard.putNumber("Pivot/Current_Pitch_Position", pivotMotor.getPosition().getValueAsDouble() * 360);
+        SmartDashboard.putNumber("Pivot/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
         SmartDashboard.putNumber("Pivot/Target_Pitch_Deg", targetPitchDegrees);
 
+        SmartDashboard.putNumber("Turret/Turrent_Target_Post_Config", turretMotor.getClosedLoopReference().getValueAsDouble());
+    
         SmartDashboard.putNumber("Turret/Current_Turret", turretMotor.getPosition().getValueAsDouble());
-        //SmartDashboard.putNumber("Turret/", );
         SmartDashboard.putNumber("Turret/Target_Turret", turretTarget);
 
     }

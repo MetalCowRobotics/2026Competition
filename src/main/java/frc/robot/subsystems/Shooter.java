@@ -24,6 +24,7 @@ public class Shooter extends SubsystemBase {
     private final PivotLookup pivotLookup;
     private final char alliance;
     private final CommandSwerveDrivetrain drivetrain;
+    public double speed;
 
     private boolean shooterEnabled = false;
 
@@ -50,7 +51,7 @@ public class Shooter extends SubsystemBase {
     // 1. Ramp and PID
     config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1.0; // 1 second ramp
     var slot0 = config.Slot0;
-    slot0.kP = 5; 
+    slot0.kP = 7; 
     slot0.kV = 130; 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO: Change 
@@ -131,7 +132,7 @@ public class Shooter extends SubsystemBase {
 
     public void startShooter(){
 
-        double speed = pivotLookup.getPower(calculatePower());
+        speed = pivotLookup.getPower(calculatePower());
 
         double smoothSpeed1 = limiter.calculate(speed);
         
@@ -160,6 +161,8 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter Current", getShooterCurrent());
+
+                SmartDashboard.putNumber("Shooter Speed", speed);
         SmartDashboard.putNumber("Velocity", getSpeed());
     }
 }
