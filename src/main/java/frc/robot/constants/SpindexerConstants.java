@@ -1,7 +1,7 @@
 package frc.robot.constants;
 
 public class SpindexerConstants {
-    public final static double SPINDEXER_SPEED = 0.9;
+    public final static double SPINDEXER_SPEED = 0.6;
     public final static double SPINDEXER_IDLE_SPEED = 0;
     public final static double SPINDEXER_REVERSE_SPEED = -1;
 }

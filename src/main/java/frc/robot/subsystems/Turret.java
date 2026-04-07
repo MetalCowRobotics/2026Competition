@@ -22,25 +22,13 @@ public class Turret extends SubsystemBase {
     private final TalonFX turretMotor;
     private final TalonFX pivotMotor;
     private final CommandSwerveDrivetrain drivetrain;
-    private final Shooter shooter;
     private final PivotLookup pivotLookup;
-
-    // Control Constants
-
-    public boolean isUnderTrench = false;
-    public boolean isManualZeroPivot = false;
 
     PIDController pid = new PIDController(TurretConstants.KP_TURRET, 0, 0);
 
-    // Physics Constants (Standardized to Feet for the formula)
-    private final double TARGET_HEIGHT_DIFF = 1.27;
     private final double SHOOTER_SPEED = 12;
 
-    private final double GRAVITY = 9.81;
-
     public char alliance;
-
-    private final double SHOOTER_CURRENT_TURRET_FF = -0.2;
 
     double targetPitchDegrees;
     double currentTurretAngle;
@@ -65,7 +53,6 @@ public class Turret extends SubsystemBase {
         this.pivotMotor = new TalonFX(30);// 14
         this.drivetrain = drivetrain;
         this.alliance = alliance;
-        this.shooter = shooter;
         pivotLookup = new PivotLookup();
 
         configureMotors();
@@ -107,10 +94,6 @@ public class Turret extends SubsystemBase {
 
     }
 
-    /**
-     * Manually resets encoder positions to zero.
-     * Use this when the turret and pivot are physically at their "home" positions.
-     */
     public void zeroMotors() {
         turretMotor.setPosition(0);
         pivotMotor.setPosition(0);
@@ -131,24 +114,24 @@ public class Turret extends SubsystemBase {
                 () -> zeroOnlyPivot());
     }
 
-    public void zeroPivot() {
-        PositionVoltage p = new PositionVoltage(0);
-        pivotMotor.setControl(p.withPosition(0));
-    }
+    // public void zeroPivot() {
+    //     PositionVoltage p = new PositionVoltage(0);
+    //     pivotMotor.setControl(p.withPosition(0));
+    // }
 
-    public Command zeroPivotCommand() {
-        return this.runOnce(
-                () -> zeroPivot());
-    }
+    // public Command zeroPivotCommand() {
+    //     return this.runOnce(
+    //             () -> zeroPivot());
+    // }
 
-    public Command homePivotCommand() {
-        return this.run(() -> pivotMotor.set(-0.1))
-                .withTimeout(0.5)
-                .andThen(() -> {
-                    pivotMotor.set(0);
-                    zeroOnlyPivot();
-                });
-    }
+    // public Command homePivotCommand() {
+    //     return this.run(() -> pivotMotor.set(-0.1))
+    //             .withTimeout(0.5)
+    //             .andThen(() -> {
+    //                 pivotMotor.set(0);
+    //                 zeroOnlyPivot();
+    //             });
+    // }
 
     public void zeroTurret() {
         PositionVoltage p = new PositionVoltage(0);
@@ -241,7 +224,8 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putNumber("Dis", distanceMeters);
 
         if (tuck == true) {
-            targetPitchDegrees = 0;
+            // targetPitchDegrees = 0;
+            targetPitchDegrees = 30;
         } else {
             targetPitchDegrees = pivotLookup.getAngle(distanceMeters);
             targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);

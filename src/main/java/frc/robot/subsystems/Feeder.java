@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import java.time.Period;
-
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -79,12 +77,14 @@ public class Feeder extends SubsystemBase {
             () -> feederMotor.set(0));
     }
 
-   @Override
+    @Override
     public void periodic() {
         if(shooter.getSpeed() > ShooterConstants.SPEED_THRESHOLD_FOR_INTAKE){
             feederMotor.set(FeederConstants.FEEDER_FAST_SPEED);
         }else{
              feederMotor.set(FeederConstants.FEEDER_IDLE_SPEED);
         }
+
+        SmartDashboard.putNumber("Feeder Speed", feederMotor.getVelocity().getValueAsDouble());
     } 
 }

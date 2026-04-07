@@ -9,7 +9,7 @@ public class IntakeConstants {
     public final static double TIME_BTW_AGITATE = 0.45; //seconds
 
 
-    public final static double PIVOT_INTAKE_DOWN = 13.9;
+    public final static double PIVOT_INTAKE_DOWN = 13.45;
 
     public final static double PIVOT_INTAKE_UP = 0.0;
 

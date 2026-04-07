@@ -4,6 +4,8 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
@@ -74,5 +76,7 @@ public class Spindexer extends SubsystemBase {
         }else{
             stopSpindexer();
         }
+
+        SmartDashboard.putNumber("Spindex Speed", spindexerMotor.getVelocity().getValueAsDouble());
     }
 }

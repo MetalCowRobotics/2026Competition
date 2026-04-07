@@ -26,8 +26,6 @@ public class Shooter extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
     public double speed;
 
-    private boolean shooterEnabled = false;
-
     SlewRateLimiter limiter = new SlewRateLimiter(20);
 
     public Shooter(CommandSwerveDrivetrain drivetrain, char alliance) {
@@ -99,22 +97,6 @@ public class Shooter extends SubsystemBase {
         shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
     }
 
-    public double calculatePower()
-    {
-        Pose2d robotPos = drivetrain.getState().Pose;       
-
-        Translation2d redHubMeters = new Translation2d(Units.inchesToMeters(469.11), Units.inchesToMeters(158.845));
-        Translation2d blueHubMeters = new Translation2d(Units.inchesToMeters(182.11),Units.inchesToMeters(158.845));
-        
-        double distToHub = 0;
-        Translation2d desiredHub;
-
-        if (alliance == 'R') desiredHub = redHubMeters;
-        else desiredHub = blueHubMeters;
-
-        distToHub = robotPos.getTranslation().getDistance(desiredHub);
-        return distToHub;
-    }
 
 
     public double getShooterCurrent(){
@@ -132,7 +114,20 @@ public class Shooter extends SubsystemBase {
 
     public void startShooter(){
 
-        speed = pivotLookup.getPower(calculatePower());
+        Pose2d robotPos = drivetrain.getState().Pose;       
+
+        Translation2d redHubMeters = new Translation2d(Units.inchesToMeters(469.11), Units.inchesToMeters(158.845));
+        Translation2d blueHubMeters = new Translation2d(Units.inchesToMeters(182.11),Units.inchesToMeters(158.845));
+        
+        double distToHub = 0;
+        Translation2d desiredHub;
+
+        if (alliance == 'R') desiredHub = redHubMeters;
+        else desiredHub = blueHubMeters;
+
+        distToHub = robotPos.getTranslation().getDistance(desiredHub);
+
+        speed = pivotLookup.getPower(distToHub);
 
         double smoothSpeed1 = limiter.calculate(speed);
         

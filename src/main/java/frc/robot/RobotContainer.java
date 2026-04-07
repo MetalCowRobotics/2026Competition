@@ -152,7 +152,8 @@ public class RobotContainer {
         operatorController.a().whileTrue(intake.pivotAgitateCommand());
         operatorController.a().whileFalse(intake.pivotStopAgitateCommand());
 
-        operatorController.y().toggleOnTrue(shooter.startShooterCommand());
+        operatorController.y().whileTrue(shooter.shooterCommand());
+        operatorController.y().whileFalse(shooter.shooterStop());
 
         operatorController.x().toggleOnTrue(intake.runIntakeCommand());
 
@@ -162,7 +163,7 @@ public class RobotContainer {
         //operatorController.b().whileTrue(feeder.reverseFeederCommand().alongWith(spindexer.reverseSpindexerCommand()));
         // operatorController.b().onFalse(intake.pivotStopAgitateCommand());
 
-        operatorController.rightBumper().onTrue(turret.homePivotCommand());
+        //operatorController.rightBumper().onTrue(turret.homePivotCommand());
 
         //operatorController.leftBumper().onTrue(turret.passingCommand(pose, alliance).withTimeout(1).andThen(shooter.startShooterCommand()));
     

@@ -37,6 +37,7 @@ public class Intake extends SubsystemBase {
 
         //intakePivotMotor.setPosition(2.68);
         intakePivotMotor.setPosition(IntakeConstants.PIVOT_INTAKE_UP);
+        intakeconfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = 1.0;
 
         intakeconfig.Slot0.kP = IntakeConstants.KP; //TODO: Increase p
         //intakeconfig.Slot0.kD = 0.2;
