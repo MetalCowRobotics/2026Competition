@@ -99,12 +99,13 @@ public class RobotContainer {
 
         SmartDashboard.putData("Auto Location", autoLocationChooser);
 
-        NamedCommands.registerCommand("Stop Shoot", shooter.shooterStop().alongWith(intake.pivotStopAgitateCommand()));
+        NamedCommands.registerCommand("Stop Shoot", shooter.shooterAutoStop().alongWith(intake.pivotStopAgitateCommand()));
         NamedCommands.registerCommand("Intake", intake.startIntakeCommand());
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
-        NamedCommands.registerCommand("Shoot", shooter.shooterCommand().alongWith(intake.pivotAgitateCommand()));
+        NamedCommands.registerCommand("Shoot", shooter.shooterAutoCommand().withTimeout(2).alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
-
+        NamedCommands.registerCommand("Start Turret", turret.autonomousTrackingHubCommand(alliance, false));
+        NamedCommands.registerCommand("Stop Turret", turret.autonomousTrackingHubCommand(alliance, true));
        
         //NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 

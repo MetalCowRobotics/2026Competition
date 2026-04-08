@@ -102,6 +102,11 @@ public class Turret extends SubsystemBase {
                 () -> autoTrackingHub(al, t));
     }
 
+    public Command autonomousTrackingHubCommand(char al, boolean t) {
+        return this.runOnce(
+                () -> autoTrackingHub(al, t));
+    }
+
     public void autoTrackingHub(char a, boolean tuck) {
         Pose2d robotPos = drivetrain.getState().Pose;
 
@@ -112,6 +117,8 @@ public class Turret extends SubsystemBase {
                 robotPos.getRotation());
 
         double robotVx = fieldRelativeSpeeds.vxMetersPerSecond;
+        double robotAngular = fieldRelativeSpeeds.omegaRadiansPerSecond;
+        robotAngular = Math.toDegrees(robotAngular);
         double robotVy = fieldRelativeSpeeds.vyMetersPerSecond;
 
         // --- 2. PREDICTIVE TARGETING (Motion Compensation) ---
@@ -171,7 +178,7 @@ public class Turret extends SubsystemBase {
 
         
 
-       turretTarget = Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations();
+       turretTarget = Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations() - (robotAngular * 0.00002);
 
         turretMotor.setControl(request.withPosition((turretTarget)));
 

@@ -127,6 +127,15 @@ public class Shooter extends SubsystemBase {
                 () -> stopShooter()
             );
         }
+
+         public Command shooterAutoStop(){
+            return this.runOnce(
+                () -> stopShooter()
+            );
+        }
+
+       
+    
         
     public Command startShooterCommand() {
             return this.startEnd(
@@ -137,6 +146,11 @@ public class Shooter extends SubsystemBase {
 
     public Command shooterCommand() {
             return this.run(
+            () -> startShooter());
+    }
+
+    public Command shooterAutoCommand() {
+            return this.runOnce(
             () -> startShooter());
     }
 
