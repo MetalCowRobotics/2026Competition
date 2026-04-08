@@ -21,10 +21,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.*;
 
 public class RobotContainer {
@@ -65,6 +64,7 @@ public class RobotContainer {
         }
         
     public RobotState currentState;
+    
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -112,6 +112,70 @@ public class RobotContainer {
         configureBindings();
     }
 
+    public Command getResetSequence() {
+    return new SequentialCommandGroup(
+        // 1. The Functional Command (Movement until Sensor)
+        new FunctionalCommand(
+            // On Start (init): Do nothing or prep
+            () -> {}, 
+
+            // Every Loop (execute): Run both motors
+            () -> {
+                turret.pivotDown();
+                turret.turretTurn();
+            },
+
+            // On End: Stop the motors
+            interrupted -> turret.stopMotors(),
+
+            // Condition to Finish: Switch returns false
+            () -> !turret.getSwitch(),
+
+            // Requirements
+            turret
+        ),
+
+        // 2. Wait for 0.2 seconds
+        new WaitCommand(0.2),
+        new FunctionalCommand(
+            // On Start (init): Do nothing or prep
+            () -> {}, 
+
+            // Every Loop (execute): Run both motors
+            () -> {
+                turret.pivotDown();
+                turret.turretTurnSlow();
+            },
+
+            // On End: Stop the motors
+            interrupted -> turret.stopMotors(),
+
+            // Condition to Finish: Switch returns false
+            () -> !turret.getSwitch(),
+
+            // Requirements
+            turret
+        ),
+            new WaitCommand(0.2),
+        // 3. Final Zeroing
+        new InstantCommand(() -> turret.zeroMotors(), turret)
+    );
+}
+//  public Command getPivotAndTurnCommand() {
+//    return Commands.sequence(
+//         // Race: Pivot and Turn until switch is hit
+//         Commands.race(
+//             Commands.run(() -> turret.pivotDown(), turret),
+//             Commands.run(() -> turret.turretTurn(), turret),
+//             Commands.waitUntil(() -> !turret.getSwitch()) // Fixed lowercase 'w'
+//         ),
+
+//         // Stop, Wait, and Zero
+//         Commands.runOnce(() -> turret.stopMotors(), turret),
+//         Commands.waitSeconds(0.2), 
+//         Commands.runOnce(() -> turret.zeroMotors(), turret)
+//     );
+// }
 
 
 
@@ -142,14 +206,6 @@ public class RobotContainer {
        
         // OPERATOR COMMAND
 
-        // operatorController.a().whileTrue(turret.autoTrackingHubCommand(alliance));
-        // operatorController.a().whileFalse(turret.autoTrackingHubCommand(alliance));
-        //turret.setDefaultCommand(turret.autoTrackingHubCommand(alliance));
-        // operatorController.x().toggleOnFalse(intake.endIntakeCommand());
-        // operatorController.y().onTrue(shooter.startShooterCommand());
-        // operatorController.rightTrigger().onTrue(turret.switchTurretCommand());
-        // operatorController.y().toggleOnFalse(shooter.shooterStop());
-
         operatorController.a().whileTrue(intake.pivotAgitateCommand());
         operatorController.a().whileFalse(intake.pivotStopAgitateCommand());
 
@@ -158,29 +214,16 @@ public class RobotContainer {
 
         operatorController.x().toggleOnTrue(intake.runIntakeCommand());
 
-        //operatorController.a().whileTrue(intake.pivotAgitateCommand());
-
-        
-        //operatorController.b().whileTrue(feeder.reverseFeederCommand().alongWith(spindexer.reverseSpindexerCommand()));
-        // operatorController.b().onFalse(intake.pivotStopAgitateCommand());
-
-        //operatorController.rightBumper().onTrue(turret.homePivotCommand());
-
-        //operatorController.leftBumper().onTrue(turret.passingCommand(pose, alliance).withTimeout(1).andThen(shooter.startShooterCommand()));
-    
         operatorController.leftTrigger().onTrue(intake.reverseIntakeCommand());
         operatorController.leftTrigger().onFalse(intake.stopIntakeCommand());
 
         operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, false)); 
         operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, true));
+        operatorController.rightBumper().onTrue(getResetSequence());
 
-       // operatorController.rightTrigger().toggleOnTrue(turret.manualZeroPivotCommand());
-
-        //joystick.a().onTrue(intake.pivotUp());
-    
-        // joystick.rightBumper().whileFalse(turret.autoTrackingHubCommand(alliance));
-        // joystick.rightBumper().whileTrue(turret.zeroOnlyPivotCommand());   
     }
+
+   
 
     public Command getAutonomousCommand() {
         try{

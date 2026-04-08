@@ -13,8 +13,16 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.TurretConstants;
+import edu.wpi.first.wpilibj.DigitalInput;
+
+// Initialize a DigitalInput on DIO port 0
+
+// Get the current value: true if the circuit is open (High), false if closed (Low)
+
+
 
 public class Turret extends SubsystemBase {
 
@@ -34,8 +42,13 @@ public class Turret extends SubsystemBase {
     double turretpivotTargetRotations;
     double turretTarget;
     double distToHub;
-
+    DigitalInput limitSwitch = new DigitalInput(1);
+    boolean isTriggered = limitSwitch.get();
     PositionVoltage request = new PositionVoltage(0);
+   
+    public boolean getSwitch(){
+        return limitSwitch.get();
+    }
 
     // Field Constants (Converted to Meters for WPILib compatibility)
     private final Translation2d redHubMeters = new Translation2d(
@@ -67,7 +80,7 @@ public class Turret extends SubsystemBase {
         // turretConfig.Slot0.kV = 0;
         // turretConfig.Slot0.kI = 0.001;
 
-        turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 1;
         turretConfig.Slot0.kP = 150;
         turretConfig.Slot0.kV = 0;
         turretConfig.Slot0.kD = 2.5;
@@ -93,9 +106,43 @@ public class Turret extends SubsystemBase {
     }
 
     public void zeroMotors() {
-        turretMotor.setPosition(0);
+        turretMotor.setPosition(-30.0/360.0);
         pivotMotor.setPosition(0);
     }
+
+    public void pivotDown(){
+        pivotMotor.set(-0.05);
+    }
+    public void turretTurn(){
+        turretMotor.set(0.09);
+    }
+    public void turretTurnSlow(){
+        turretMotor.set(-0.04);
+    }
+    public void stopMotors() {
+        turretMotor.set(0);
+        pivotMotor.set(0);
+    }
+
+    public Command pivotDownCommand(){
+        return this.runOnce(
+            () -> pivotDown()
+            );
+    }
+
+      public Command stopMotorsCommand(){
+        return this.runOnce(
+            () -> stopMotors()
+            );
+    }
+    public Command topMotorsCommand(){
+        return this.runOnce(
+            () -> stopMotors()
+            );
+    }
+
+
+    // Using WPILib Command Composition
 
     public Command autoTrackingHubCommand(char al, boolean t) {
         return this.run(
@@ -247,8 +294,9 @@ public class Turret extends SubsystemBase {
 
         SmartDashboard.putNumber("Turret/Turrent_Target_Post_Config", turretMotor.getClosedLoopReference().getValueAsDouble());
     
-        SmartDashboard.putNumber("Turret/Current_Turret", turretMotor.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("Turret/Current_Turret", turretMotor.getPosition().getValueAsDouble()*360);
         SmartDashboard.putNumber("Turret/Target_Turret", turretTarget);
+        SmartDashboard.putBoolean("Turret/Switch", limitSwitch.get());
 
     }
 }
