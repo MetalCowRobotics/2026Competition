@@ -50,7 +50,7 @@ public class Shooter extends SubsystemBase {
         shooterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         shooterConfig.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT;
         shooterConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-        shooterConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        shooterConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 1;
         shooterConfig.Slot0.kP = 24;
         shooterConfig.Slot0.kV = 20;
         shooterConfig.Slot0.kD = 0.1;
