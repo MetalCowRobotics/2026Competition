@@ -104,7 +104,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
         NamedCommands.registerCommand("Shoot", shooter.shooterCommand().alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
-
+        NamedCommands.registerCommand("Start Turret", turret.autoTrackingHubCommand(alliance, true));
+        NamedCommands.registerCommand("Bring Pivot Down", turret.autoTrackingHubCommand(alliance, false));
        
         NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 
