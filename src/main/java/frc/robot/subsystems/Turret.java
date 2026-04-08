@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.TurretConstants;
-import edu.wpi.first.math.controller.PIDController;
 
 public class Turret extends SubsystemBase {
 
@@ -24,9 +23,8 @@ public class Turret extends SubsystemBase {
     private final CommandSwerveDrivetrain drivetrain;
     private final PivotLookup pivotLookup;
 
-    PIDController pid = new PIDController(TurretConstants.KP_TURRET, 0, 0);
 
-    private final double SHOOTER_SPEED = 12;
+    private final double SHOOTER_SPEED = 7;
 
     public char alliance;
 
@@ -71,7 +69,7 @@ public class Turret extends SubsystemBase {
 
         turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
         turretConfig.Slot0.kP = 150;
-        turretConfig.Slot0.kV = 20;
+        turretConfig.Slot0.kV = 0;
         turretConfig.Slot0.kD = 2.5;
         turretConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
         turretConfig.ClosedLoopGeneral.ContinuousWrap = true;
@@ -99,48 +97,9 @@ public class Turret extends SubsystemBase {
         pivotMotor.setPosition(0);
     }
 
-    public void zeroOnlyPivot() {
-        double turretRotations = turretMotor.getPosition().getValueAsDouble();
-        pivotMotor.setControl(request.withPosition(turretRotations * .2088));
-    }
-
     public Command autoTrackingHubCommand(char al, boolean t) {
         return this.run(
                 () -> autoTrackingHub(al, t));
-    }
-
-    public Command zeroOnlyPivotCommand() {
-        return this.run(
-                () -> zeroOnlyPivot());
-    }
-
-    // public void zeroPivot() {
-    //     PositionVoltage p = new PositionVoltage(0);
-    //     pivotMotor.setControl(p.withPosition(0));
-    // }
-
-    // public Command zeroPivotCommand() {
-    //     return this.runOnce(
-    //             () -> zeroPivot());
-    // }
-
-    // public Command homePivotCommand() {
-    //     return this.run(() -> pivotMotor.set(-0.1))
-    //             .withTimeout(0.5)
-    //             .andThen(() -> {
-    //                 pivotMotor.set(0);
-    //                 zeroOnlyPivot();
-    //             });
-    // }
-
-    public void zeroTurret() {
-        PositionVoltage p = new PositionVoltage(0);
-        turretMotor.setControl(p.withPosition(0));
-    }
-
-    public Command zeroTurretCommand() {
-        return this.run(
-                () -> zeroTurret());
     }
 
     public void autoTrackingHub(char a, boolean tuck) {
@@ -224,8 +183,7 @@ public class Turret extends SubsystemBase {
         SmartDashboard.putNumber("Dis", distanceMeters);
 
         if (tuck == true) {
-            // targetPitchDegrees = 0;
-            targetPitchDegrees = 30;
+             targetPitchDegrees = 0;
         } else {
             targetPitchDegrees = pivotLookup.getAngle(distanceMeters);
             targetPitchDegrees = MathUtil.clamp(targetPitchDegrees, 0, 45);
@@ -254,7 +212,7 @@ public class Turret extends SubsystemBase {
         Translation2d finalTarget;
 
         if (alliance == 'R') {
-            if (robotPos.getX() > 13) {
+            if (robotPos.getX() > 11.9) {
                 finalTarget = desiredHub;
             } else if (robotPos.getY() > 4) {
                 finalTarget = Red_Left_Target;
@@ -263,7 +221,7 @@ public class Turret extends SubsystemBase {
             }
 
         } else {
-            if (robotPos.getX() < 3.5) {
+            if (robotPos.getX() < 4.7) {
                 finalTarget = desiredHub;
             } else if (robotPos.getY() > 4) {
                 finalTarget = Blue_Right_Target;

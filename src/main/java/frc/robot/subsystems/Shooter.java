@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShooterConstants;
-import frc.robot.constants.SpindexerConstants;
 
 
 public class Shooter extends SubsystemBase {
@@ -44,56 +43,44 @@ public class Shooter extends SubsystemBase {
     }
 
    private void configureMotors() {
-    TalonFXConfiguration config = new TalonFXConfiguration();
 
-    // 1. Ramp and PID
-    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1.0; // 1 second ramp
-    var slot0 = config.Slot0;
-    slot0.kP = 7; 
-    slot0.kV = 130; 
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO: Change 
+    TalonFXConfiguration shooterConfig = new TalonFXConfiguration();
+        shooterConfig.Feedback.SensorToMechanismRatio = 0.97778;
+        shooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        shooterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        shooterConfig.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT;
+        shooterConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        shooterConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        shooterConfig.Slot0.kP = 24;
+        shooterConfig.Slot0.kV = 20;
+        shooterConfig.Slot0.kD = 0.1;
+        shooterConfig.Slot0.kS = 0.25; // Add 0.25 V output to overcome static friction
+        shooterConfig.Slot0.kV = 0.12; // A velocity target of 1 rps results in 0.12 V output
+        shooterConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1.0; // 1 second ramp
+    
+    //     var slot0 = config.Slot0;
+    // slot0.kP = 7; 
+    // slot0.kV = 130; 
+    // config.CurrentLimits.StatorCurrentLimitEnable = true;
+    // config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO: Change 
 
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit battery draw TODO: Change
-    // 2. Mechanics
-    config.Feedback.SensorToMechanismRatio = 0.977778;
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
+    // config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    // config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit battery draw TODO: Change
+    // // 2. Mechanics
+    // config.Feedback.SensorToMechanismRatio = 0.977778;
+    // config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    // config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
 
     StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
-            status = shooterMotor1.getConfigurator().apply(config);
+            status = shooterMotor1.getConfigurator().apply(shooterConfig);
             if (status.isOK()) break;
         }
         if (!status.isOK()) {
             System.out.println("Could not configure leader motor. Error: " + status.toString());
         }
-
-        // Configure shooter motor two
-        // config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    
-    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1; // 1 second ramp
-    slot0.kP = 6; 
-    slot0.kV = 0.16; 
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit motor heat TODO:Change back
-
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = ShooterConstants.CURRENT_LIMIT; // Limit battery draw TODO:Change back
-    // 2. Mechanics
-    config.Feedback.SensorToMechanismRatio = 0.977778;
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Coast; // Shooters should coast!
-        status = StatusCode.StatusCodeNotInitialized;
-        for (int i = 0; i < 5; ++i) {
-            status = shooterMotor2.getConfigurator().apply(config);
-            if (status.isOK()) break;
-        }
-        if (!status.isOK()) {
-            System.out.println("Could not configure follower motor. Error: " + status.toString());
-        }
-        // 5. Follower logic
+        shooterMotor1.getConfigurator().apply(shooterConfig);
+        shooterMotor2.getConfigurator().apply(shooterConfig);
         shooterMotor2.setControl(new StrictFollower(shooterMotor1.getDeviceID()));
     }
 
@@ -156,8 +143,7 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter Current", getShooterCurrent());
-
-                SmartDashboard.putNumber("Shooter Speed", speed);
+        SmartDashboard.putNumber("Shooter Speed", speed);
         SmartDashboard.putNumber("Velocity", getSpeed());
     }
 }

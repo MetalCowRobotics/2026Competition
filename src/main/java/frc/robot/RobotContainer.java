@@ -106,7 +106,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
 
        
-        NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
+        //NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 
         configureBindings();
     }
