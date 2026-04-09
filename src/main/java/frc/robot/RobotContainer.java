@@ -158,7 +158,8 @@ public class RobotContainer {
         ),
             new WaitCommand(0.2),
         // 3. Final Zeroing
-        new InstantCommand(() -> turret.zeroMotors(), turret)
+        new InstantCommand(() -> turret.zeroMotors(), turret),
+        Commands.run( () -> turret.autoTrackingHubCommand(alliance, false))
     );
 }
 //  public Command getPivotAndTurnCommand() {
