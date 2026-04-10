@@ -197,7 +197,7 @@ public class Turret extends SubsystemBase {
 
         Translation2d turretOffsetField = turretOffset.rotateBy(robotPos.getRotation());
 
-        Translation2d turretFieldPosition = robotPos.getTranslation().plus(turretOffsetField);
+        Translation2d turretFieldPosition = robotPos.getTranslation().minus(turretOffsetField);
 
             double angleToLeadRad = Math.atan2(
         leadingTarget.getY() - turretFieldPosition.getY(),
@@ -246,7 +246,7 @@ public class Turret extends SubsystemBase {
 
         double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
 
-        pivotMotor.setControl(request.withPosition(pitchOnlyRotations + ((turretCurrentRotations * 0.2088) - (robotAngular * 0.00002))));
+        pivotMotor.setControl(request.withPosition(pitchOnlyRotations + ((turretCurrentRotations * 0.2088) - (robotAngular * 0.00003))));
     }
 
     private Translation2d getFinalTarget(char a, Pose2d robotPos) {
