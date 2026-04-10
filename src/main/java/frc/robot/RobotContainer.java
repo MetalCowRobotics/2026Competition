@@ -104,8 +104,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("Stop Intake", intake.endIntakeCommand());
         NamedCommands.registerCommand("Shoot", shooter.shooterAutoCommand().withTimeout(2).alongWith(intake.pivotAgitateCommand()));
         NamedCommands.registerCommand("Home", intake.pivotStopAgitateCommand());
-        NamedCommands.registerCommand("Start Turret", turret.autonomousTrackingHubCommand(alliance, false));
-        NamedCommands.registerCommand("Stop Turret", turret.autonomousTrackingHubCommand(alliance, true));
+        NamedCommands.registerCommand("Start Turret", turret.autoTrackingHubCommand(alliance, false));
+        NamedCommands.registerCommand("Stop Turret", turret.autoTrackingHubCommand(alliance, true));
        
         //NamedCommands.registerCommand("Trench", turret.zeroOnlyPivotCommand());
 
@@ -158,7 +158,8 @@ public class RobotContainer {
         ),
             new WaitCommand(0.2),
         // 3. Final Zeroing
-        new InstantCommand(() -> turret.zeroMotors(), turret),
+        new InstantCommand(() -> turret.zeroMotorsMag(), turret),
+        new WaitCommand(0.2),
         Commands.run( () -> turret.autoTrackingHubCommand(alliance, false))
     );
 }

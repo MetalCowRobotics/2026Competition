@@ -27,6 +27,8 @@ public class Feeder extends SubsystemBase {
 
         // Feeders are often 1:1 or low reduction for speed
         config.Feedback.SensorToMechanismRatio = 1.0; 
+        config.CurrentLimits.StatorCurrentLimit = 75;
+        config.CurrentLimits.StatorCurrentLimitEnable = true;
         
         // Ensure this matches your physical build
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;

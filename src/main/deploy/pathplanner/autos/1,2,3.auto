@@ -7,13 +7,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.0
+            "waitTime": 0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "DisruptP1"
+            "pathName": "1"
           }
         },
         {
@@ -31,25 +31,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "disruptP2"
+            "pathName": "2"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "DisruptP3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop Intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "DisruptP4"
+            "pathName": "3"
           }
         },
         {

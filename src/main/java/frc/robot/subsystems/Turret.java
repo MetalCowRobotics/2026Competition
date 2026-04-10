@@ -13,7 +13,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.TurretConstants;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -106,7 +105,12 @@ public class Turret extends SubsystemBase {
     }
 
     public void zeroMotors() {
-        turretMotor.setPosition(-30.0/360.0);
+        turretMotor.setPosition(0.0);
+        pivotMotor.setPosition(0.0);
+    }
+
+    public void zeroMotorsMag() {
+        turretMotor.setPosition(-24.0/360.0);
         pivotMotor.setPosition(0);
     }
 
@@ -149,11 +153,6 @@ public class Turret extends SubsystemBase {
                 () -> autoTrackingHub(al, t));
     }
 
-    public Command autonomousTrackingHubCommand(char al, boolean t) {
-        return this.runOnce(
-                () -> autoTrackingHub(al, t));
-    }
-
     public void autoTrackingHub(char a, boolean tuck) {
         Pose2d robotPos = drivetrain.getState().Pose;
 
@@ -193,7 +192,7 @@ public class Turret extends SubsystemBase {
                 // Y: 4.375 inches to left of center
         Translation2d turretOffset = new Translation2d(
             Units.inchesToMeters(-5.375),     // back
-            Units.inchesToMeters(4.375)    // left
+            Units.inchesToMeters(4.375)    // left ///////inverted?
         );
 
         Translation2d turretOffsetField = turretOffset.rotateBy(robotPos.getRotation());
@@ -247,7 +246,7 @@ public class Turret extends SubsystemBase {
 
         double turretCurrentRotations = turretMotor.getPosition().getValueAsDouble();
 
-        pivotMotor.setControl(request.withPosition(pitchOnlyRotations + (turretCurrentRotations * 0.2088)));
+        pivotMotor.setControl(request.withPosition(pitchOnlyRotations + ((turretCurrentRotations * 0.2088) - (robotAngular * 0.00002))));
     }
 
     private Translation2d getFinalTarget(char a, Pose2d robotPos) {
