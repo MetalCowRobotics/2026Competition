@@ -8,7 +8,7 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.578566770391951,
+        "x": 4.57856677039195,
         "y": 2.6898486052259885
       },
       "isLocked": false,
@@ -16,16 +16,32 @@
     },
     {
       "anchor": {
-        "x": 6.547,
-        "y": 2.023
+        "x": 6.61746752025463,
+        "y": 1.7786537905092596
       },
       "prevControl": {
-        "x": 5.595873394453852,
-        "y": 2.3318011985440843
+        "x": 6.289025929994944,
+        "y": 2.1368745629215944
+      },
+      "nextControl": {
+        "x": 7.459053819444445,
+        "y": 0.8607624421296293
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 8.069756655092593,
+        "y": 0.9525515769675927
+      },
+      "prevControl": {
+        "x": 7.314776258680556,
+        "y": 1.19203002025463
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1e"
+      "linkedName": "b1e"
     }
   ],
   "rotationTargets": [],
@@ -41,11 +57,11 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 1.0,
-    "rotation": 27.462137093189444
+    "velocity": 0,
+    "rotation": 89.10431746209235
   },
   "reversed": false,
-  "folder": null,
+  "folder": "bronco",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

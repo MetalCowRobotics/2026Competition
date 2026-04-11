@@ -18,8 +18,8 @@ public class PivotLookup {
         // angleMap.put(4.75, 30.0);
         // angleMap.put(5.25, 35.0);
         angleMap.put(1.45, 19.0);
-        angleMap.put(1.72, 19.0);
-        angleMap.put(2.26, 23.0);
+        angleMap.put(1.72, 21.0);
+        angleMap.put(2.26, 24.0);
         angleMap.put(3.05, 29.0);
         angleMap.put(3.40, 33.0);
         angleMap.put(4.25, 38.0);  // Plateau — angle holds, power still climbs
@@ -28,7 +28,7 @@ public class PivotLookup {
 
         // Distance → Shooter power (percent, 0.0–1.0)
         velocityMap.put(1.45, 0.7);
-        velocityMap.put(1.72, 0.7);
+        velocityMap.put(1.72, 0.73);
         velocityMap.put(2.46, 0.75);
         velocityMap.put(3.05, 0.75);
         velocityMap.put(3.45, 0.75);

@@ -110,7 +110,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void zeroMotorsMag() {
-        turretMotor.setPosition(-24.0/360.0);
+        turretMotor.setPosition(-20/360.0);
         pivotMotor.setPosition(0);
     }
 

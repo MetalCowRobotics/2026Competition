@@ -3,7 +3,8 @@
   "robotLength": 0.914,
   "holonomicMode": true,
   "pathFolders": [
-    "Blue Right"
+    "Blue Right",
+    "bronco"
   ],
   "autoFolders": [
     "Blue Right"
