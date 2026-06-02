@@ -38,6 +38,8 @@ public class Turret extends SubsystemBase {
     double distToHub;
 
     PositionVoltage request = new PositionVoltage(0);
+    // Small config we can re-apply to ensure the turret stays in Brake mode
+    private TalonFXConfiguration turretBrakeConfig;
 
     // Field Constants (Converted to Meters for WPILib compatibility)
     private final Translation2d redHubMeters = new Translation2d(
@@ -69,12 +71,12 @@ public class Turret extends SubsystemBase {
         // turretConfig.Slot0.kV = 0;
         // turretConfig.Slot0.kI = 0.001;
 
-        turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
-        turretConfig.Slot0.kP = 150;
-        turretConfig.Slot0.kV = 20;
-        turretConfig.Slot0.kD = 2.5;
-        turretConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        turretConfig.ClosedLoopGeneral.ContinuousWrap = true;
+        // turretConfig.OpenLoopRamps.DutyCycleOpenLoopRampPeriod = 0.5;
+        // turretConfig.Slot0.kP = 150;
+        // turretConfig.Slot0.kV = 20;
+        // turretConfig.Slot0.kD = 2.5;
+        // turretConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
+        // turretConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
         TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
         pivotConfig.Feedback.SensorToMechanismRatio = 52.66;
@@ -90,6 +92,9 @@ public class Turret extends SubsystemBase {
         zeroMotors();
 
         turretMotor.getConfigurator().apply(turretConfig);
+        // Keep a tiny config that only enforces Brake so we can re-apply it later
+        turretBrakeConfig = new TalonFXConfiguration();
+        turretBrakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         pivotMotor.getConfigurator().apply(pivotConfig);
 
     }
@@ -212,9 +217,9 @@ public class Turret extends SubsystemBase {
 
         
 
-       turretTarget = Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations();
+    //    turretTarget = Units.radiansToRotations(angleToLeadRad) - robotPos.getRotation().getRotations();
 
-        turretMotor.setControl(request.withPosition((turretTarget)));
+    //     turretMotor.setControl(request.withPosition((turretTarget)));
 
         // --- 5. PIVOT CONTROL (Using Lookup Table) ---
 
@@ -276,6 +281,11 @@ public class Turret extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Re-apply a minimal config enforcing Brake mode so the turret remains
+        // in Brake even if something else modifies motor state elsewhere.
+        if (turretBrakeConfig != null) {
+            turretMotor.getConfigurator().apply(turretBrakeConfig);
+        }
         // --- Telemetry ---
         SmartDashboard.putNumber("Pivot/Current_Pitch_Deg", pivotMotor.getPosition().getValueAsDouble() * 360);
         SmartDashboard.putNumber("Pivot/Target_Pitch_Deg", targetPitchDegrees);
