@@ -3,7 +3,7 @@
     "type": "java",
     "name": "frcJava",
     "port": 8349,
-    "target": "roborio-4213-FRC.local",
+    "target": "10.42.13.2",
     "project": "2026Competition"
   }
 ]

@@ -203,7 +203,7 @@ public class RobotContainer {
             forwardStraight.withVelocityX(-0.5).withVelocityY(0))
         );
 
-
+        joystick.a().onTrue(intake.pivotUp());
         
        
         // OPERATOR COMMAND
@@ -218,10 +218,10 @@ public class RobotContainer {
 
         operatorController.leftTrigger().onTrue(intake.reverseIntakeCommand());
         operatorController.leftTrigger().onFalse(intake.stopIntakeCommand());
-
+ 
         operatorController.b().whileFalse(turret.autoTrackingHubCommand(alliance, false)); 
         operatorController.b().whileTrue(turret.autoTrackingHubCommand(alliance, true));
-        operatorController.rightBumper().onTrue(getResetSequence());
+        //operatorController.rightBumper().onTrue(getResetSequence());
 
     }
 
